@@ -28,7 +28,7 @@ class Server:
             	clientData = connectionSocket.recv(512).decode()
             #if not clientData:
 	    #	connectionSocket.close()
-                print "Message Received: " + clientData
+                print("Message Received: " + clientData)
 	    	connectionSocket.send(clientData.encode())
 
  
@@ -65,7 +65,7 @@ class Client:
             	# Add your code here
             	clientSocket.send(to_server.encode()) 
             	from_server = clientSocket.recv(512).decode()
-            	print from_server   # show in terminal
+            	print(from_server)   # show in terminal
             
             	# Get input again
 
@@ -80,9 +80,9 @@ class Client:
 
 if __name__ == '__main__':
     if len(sys.argv) <3:
-        print 'Usage: python myprog.py c <address> <port> or python myprog.py s <port>'
+        print('Usage: python myprog.py c <address> <port> or python myprog.py s <port>')
     elif sys.argv[1]!="s" and sys.argv[1]!="c":
-        print 'Usage: python myprog.py c <address> <port> or python myprog.py s <port>'
+        print('Usage: python myprog.py c <address> <port> or python myprog.py s <port>')
     elif(sys.argv[1]=="s"):
         server = Server(int(sys.argv[2]))
         server.run()

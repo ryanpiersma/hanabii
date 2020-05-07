@@ -23,13 +23,14 @@ def makeDeck():
             else:
                 number = 2
             addToDeck(deck, color[0] + str(i), number)
+    random.shuffle(deck)
     return deck
 
 # def printCard(card):
 #     print(str(card.color) + str(card.number))
 
-deck = makeDeck()
-random.shuffle(deck)
+# deck = makeDeck()
+# dealHands()
 
 # For debugging
 # for card in deck:
@@ -47,17 +48,18 @@ display = {'R': 0, 'G': 0, 'B': 0, 'Y': 0, 'W': 0}
 discardPile = []
 
 # Deal hands
-for _ in range(numPlayers): 
-    if numPlayers == 2 or numPlayers == 3:
-        handSize = 5
-    elif numPlayers == 4 or numPlayers == 5:
-        handSize = 4
+def dealHands():
+    for _ in range(numPlayers): 
+        if numPlayers == 2 or numPlayers == 3:
+            handSize = 5
+        elif numPlayers == 4 or numPlayers == 5:
+            handSize = 4
 
-    hand = [] 
-    for _ in range(handSize):
-        hand.append(deck.pop())
-    hands.append(hand)
-    hintHands.append(["**"]*handSize)
+        hand = [] 
+        for _ in range(handSize):
+            hand.append(deck.pop())
+        hands.append(hand)
+        hintHands.append(["**"]*handSize)
 
 def printHands(currPlayer):
     for player in range(numPlayers):
@@ -128,52 +130,52 @@ def giveHint(recipient, hint):
     hints -= 1
 
 
+def run():
+    print("Welcome to Hanabi!")
 
-print("Welcome to Hanabi!")
+    while True:
+        for player in range(numPlayers):
+            print("\nHere is the current state of the display:")
+            print(display)
 
-while True:
-    for player in range(numPlayers):
-        print("\nHere is the current state of the display:")
-        print(display)
+            print("\nHere is the discard pile:")
+            print(discardPile)
 
-        print("\nHere is the discard pile:")
-        print(discardPile)
+            print("\nHints: " + str(hints) + "\tMistakes remaining: " + str(mistakesRem))
 
-        print("\nHints: " + str(hints) + "\tMistakes remaining: " + str(mistakesRem))
+            print("\nWhat you see:" + "\t" * 2 + "Hints given:")
+            printHands(player)
 
-        print("\nWhat you see:" + "\t" * 2 + "Hints given:")
-        printHands(player)
+            while True:
+                action = input("\nPlayer " + str(player + 1) + ", pick an action:\nH: HINT\nP: PLAY\nD: DISCARD\n\nAction (H/P/D): ")
 
-        while True:
-            action = input("\nPlayer " + str(player + 1) + ", pick an action:\nH: HINT\nP: PLAY\nD: DISCARD\n\nAction (H/P/D): ")
-
-            if action == "H":
-                if hints > 0:
-                    recipient = int(input("Who will receive the hint: ")) - 1
-                    hint = input("Hint: ")
-                    giveHint(recipient, hint)
+                if action == "H":
+                    if hints > 0:
+                        recipient = int(input("Who will receive the hint: ")) - 1
+                        hint = input("Hint: ")
+                        giveHint(recipient, hint)
+                        break
+                    else:
+                        print("No more hints. Choose a different action.")
+                elif action == "P":
+                    pick = int(input("Pick a card (1-" + str(handSize) + "): ")) - 1
+                    play(player, pick)
+                    break
+                elif action == "D":
+                    pick = int(input("Pick a card (1-" + str(handSize) + "): ")) - 1
+                    discard(player, pick)
                     break
                 else:
-                    print("No more hints. Choose a different action.")
-            elif action == "P":
-                pick = int(input("Pick a card (1-" + str(handSize) + "): ")) - 1
-                play(player, pick)
-                break
-            elif action == "D":
-                pick = int(input("Pick a card (1-" + str(handSize) + "): ")) - 1
-                discard(player, pick)
-                break
-            else:
-                print("Not a valid choice. Please type H, P, or D.")
+                    print("Not a valid choice. Please type H, P, or D.")
 
-        if turnsRem > 0:
-            turnsRem -= 1
+            if turnsRem > 0:
+                turnsRem -= 1
+            
+            if mistakesRem == 0 or turnsRem == 0:
+                break
         
         if mistakesRem == 0 or turnsRem == 0:
             break
-    
-    if mistakesRem == 0 or turnsRem == 0:
-        break
 
-print("\nGame over!")
-print("You scored " + str(sum(display.values())) + " points!")
+    print("\nGame over!")
+    print("You scored " + str(sum(display.values())) + " points!")

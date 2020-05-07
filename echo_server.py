@@ -1,6 +1,7 @@
 # Import socket module
 from socket import *
 import sys  # In order to terminate the program
+import main
 
 
 class Server:
@@ -15,6 +16,10 @@ class Server:
         serverSocket = socket(AF_INET, SOCK_STREAM)
         serverSocket.bind(('', self.port_number))
         serverSocket.listen(1)
+
+        # Some hanabi code
+        deck = main.makeDeck()
+        print(deck)
 
         # Set up a new connection from the client
         while True:
@@ -58,7 +63,7 @@ class Client:
         # ...
         # ...
         try:
-            to_server = input('Enter message: \n')
+            to_server = input('Welcome to Hanabi! How many players? ')
             while to_server.lower().strip() != 'bye':
                 # send and receive message
 

@@ -17,3 +17,7 @@ Ryan:
 - Enhance networking capabilities of the script to account for multiple players
 
 5/6/20
+. Make Hanabi game object
+	- __init__ function intializes game state
+	- current functions in Tahj's Hanabi code become methods of Hanabi game object
+	- change printing functions to return a string that can be sent to client

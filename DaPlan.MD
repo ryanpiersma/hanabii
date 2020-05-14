@@ -33,3 +33,13 @@ Tahj:
 
 Ryan:
     - Work on thread manager for clients to be run from server
+
+5/13/20
+- Ryan: Wrote beginning code for "joining phase", where the server handles the number of people playing a particular game
+of Hana(N)bi and then gives each player a port to connect to in order to send data that will eventually be affecting game state
+- Tahj: Made "Game" object using Python classes
+
+- Ryan's "joining phase" code needs to be debugged, which can more efficiently done when using a specially designed testing
+script for a client, rather than "echo_server" unmodified. This must be done before attempting any kind of multithreaded code! (Ryan, duh)
+- Add code to each Hanabi game object method to construct a string that will be sent to the client(s). This will update the appropriate clients
+on what the method changed in the game state (Tahj)

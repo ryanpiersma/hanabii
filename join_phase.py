@@ -7,11 +7,6 @@ Created on Mon May 11 15:44:34 2020
 
 from socket import *
 import random
-import logging
-import threading
-import time
-import echo_server
-import sys
 from send_codes import SendCode
 
 
@@ -58,7 +53,12 @@ def join_phase():
         connectedPlayers = connectedPlayers + 1
         connectionSocket.close()
     
-    print("All players have connected!")
+    print("All players have connected!\n")
+    
+    print("Will create data connections on following ports: ")
+    print(dataPorts)
+    return dataPorts
+    
 
 #Return port on which the client can then connect    
 def get_available_port():

@@ -21,7 +21,7 @@ from send_codes import SendCode
 
 """
 #define join port globally
-joinPort = 60595
+joinPort = 0
 dataPorts = []
 sendString = ''
 
@@ -30,6 +30,7 @@ def join_phase():
     connectedPlayers = 0
     numPlayers = 99 #initialize to number much greater than actual ||players||
     firstPlayer = True
+    joinPort = get_available_port()
     
     while (connectedPlayers != numPlayers):
         #Socket setup
@@ -47,7 +48,7 @@ def join_phase():
             print("There will be " + str(numPlayers) + " players")
             firstPlayer = False
         else:
-            connectionSocket.send(str(SendCode.INDICATE_JOINING_GAME.value).encode())
+            connectionSocket.send(SendCode.INDICATE_JOINING_GAME.value.encode())
             print("Waiting for " + str(numPlayers - connectedPlayers) + " player(s) to connect")
     
         
@@ -77,16 +78,19 @@ def get_num_players(numSocket):
     numPlayers = 0
     numIterations = 0
     
-    numSocket.send(str(SendCode.INDICATE_PLAYER_ONE.value).encode())
+    numSocket.send(SendCode.INDICATE_PLAYER_ONE.value.encode())
+    print("Waiting to receive number of players")
     
     while (not (numPlayers > 1 and numPlayers < 6)):
         if numIterations > 0:
-            numSocket.send("Please enter valid number between 1 and 5 (inclusive)".encode())
-        print("Waiting to receive number of players")
+            numSocket.send(SendCode.INDICATE_INVALID_PLAYERNUM.value.encode())
+            print("Received invalid number of players")
         numPlayerString = numSocket.recv(4).decode()
         numPlayers = int(numPlayerString)
         numIterations = numIterations + 1
         
+    numSocket.send(SendCode.INDICATE_VALID_PLAYERNUM.value.encode())
+    
     return numPlayers
 
 if __name__ == "__main__":

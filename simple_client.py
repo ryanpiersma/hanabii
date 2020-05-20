@@ -30,8 +30,15 @@ class Client:
             print(serverMessage)
             if serverMessage == SendCode.INDICATE_PLAYER_ONE.value:
                 to_server = input('Welcome to Hana(N)bi! How many players for your game?\n')
-                clientSocket.send(to_server.encode())
-                print('Thank you! Please wait for your data port number')
+                
+                numIterations = 0
+                while (serverMessage != SendCode.INDICATE_VALID_PLAYERNUM.value):
+                    if numIterations != 0:
+                        to_server = input("Sorry, enter a number of players between 2 and 5!\n")
+                    clientSocket.send(to_server.encode())
+                    print('Thank you! Please wait for your data port number')
+                    serverMessage = clientSocket.recv(4).decode()
+                    numIterations = numIterations + 1
             else:
                 print('Welcome to your game of Hana(N)bi! Please wait for your port\n')
                 

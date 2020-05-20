@@ -12,6 +12,7 @@ import threading
 import time
 import echo_server
 import sys
+from send_codes import SendCode
 
 
 """ What does the thread manager need to do?
@@ -20,13 +21,15 @@ import sys
 
 """
 #define join port globally
-joinPort = 60598
+joinPort = 60595
 dataPorts = []
+sendString = ''
 
 # Open a connection on the Hanabi port to add players + an associated thread
 def join_phase():
     connectedPlayers = 0
     numPlayers = 99 #initialize to number much greater than actual ||players||
+    firstPlayer = True
     
     while (connectedPlayers != numPlayers):
         #Socket setup
@@ -36,16 +39,20 @@ def join_phase():
         
         print("Entered join phase successfully on join port " + str(joinPort))
         
-        if numPlayers == 99:
+        connectionSocket, addr = joinSocket.accept()
+        
+        if firstPlayer:
             print("Waiting to determine number of players in game")  
-            numPlayers = get_num_players(joinSocket)
+            numPlayers = get_num_players(connectionSocket)
+            print("There will be " + str(numPlayers) + " players")
+            firstPlayer = False
         else:
+            connectionSocket.send(str(SendCode.INDICATE_JOINING_GAME.value).encode())
             print("Waiting for " + str(numPlayers - connectedPlayers) + " player(s) to connect")
     
-        connectionSocket, addr = joinSocket.accept()
-            
+        
         dataPort = get_available_port()
-        sendString = "Please connect to your game on port " + str(dataPort)
+        sendString = str(dataPort)
         connectionSocket.send(sendString.encode())
         connectedPlayers = connectedPlayers + 1
         connectionSocket.close()
@@ -64,16 +71,21 @@ def get_available_port():
     dataPorts.append(portProspect)
     return portProspect
 
-# Return tuple (numPlayers, firstPlayerSocket)
-def get_num_players(joinSocket):
-    numSocket, addr = joinSocket.accept()
-    
+# Return numPlayers
+def get_num_players(numSocket):
+
     numPlayers = 0
+    numIterations = 0
+    
+    numSocket.send(str(SendCode.INDICATE_PLAYER_ONE.value).encode())
+    
     while (not (numPlayers > 1 and numPlayers < 6)):
-        askString = "Welcome to Hana(N)bi! How many players for your game?"
-        numSocket.send(askString.encode())
+        if numIterations > 0:
+            numSocket.send("Please enter valid number between 1 and 5 (inclusive)".encode())
+        print("Waiting to receive number of players")
         numPlayerString = numSocket.recv(4).decode()
         numPlayers = int(numPlayerString)
+        numIterations = numIterations + 1
         
     return numPlayers
 

@@ -109,5 +109,4 @@ def get_num_players(numSocket):
 if __name__ == "__main__":
     join_phase()
     
-    #x = threading.Thread(target=thread_function, args=(1,), daemon=True)
 

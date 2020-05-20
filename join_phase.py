@@ -27,33 +27,40 @@ def join_phase():
     firstPlayer = True
     joinPort = get_available_port(False)
     
+    numIterations = 0
     while (connectedPlayers != numPlayers):
         #Socket setup
         joinSocket = socket(AF_INET, SOCK_STREAM)
         joinSocket.bind(('', joinPort))
         joinSocket.listen(1)
         
-        print("Entered join phase successfully on join port " + str(joinPort))
+        if numIterations == 0:
+            print("Entered join phase successfully on join port " + str(joinPort))
+        else:
+            print("Waiting for " + str(numPlayers - connectedPlayers) + " player(s) to obtain data port...")
         
         connectionSocket, addr = joinSocket.accept()
         
         if firstPlayer:
-            print("Waiting to determine number of players in game")  
+            print("Waiting to determine number of players in game...")  
             numPlayers = get_num_players(connectionSocket)
             print("There will be " + str(numPlayers) + " players")
             firstPlayer = False
         else:
             connectionSocket.send(SendCode.INDICATE_JOINING_GAME.value.encode())
-            print("Waiting for " + str(numPlayers - connectedPlayers) + " player(s) to connect")
-    
         
         dataPort = get_available_port(True)
         sendString = str(dataPort)
         connectionSocket.send(sendString.encode())
         connectedPlayers = connectedPlayers + 1
+        
+        print("\nPLAYER " + str(connectedPlayers) + " HAS OBTAINED DATA PORT \n")
+        
         connectionSocket.close()
+        
+        numIterations = numIterations + 1
     
-    print("All players have connected!\n")
+    print("All players have been sent a port for data connection!\n")
     
     print("Will create data connections on following ports: ")
     print(dataPorts)
@@ -85,12 +92,12 @@ def get_num_players(numSocket):
     numIterations = 0
     
     numSocket.send(SendCode.INDICATE_PLAYER_ONE.value.encode())
-    print("Waiting to receive number of players")
+    print("Waiting to receive number of players from first player...")
     
     while (not (numPlayers > 1 and numPlayers < 6)):
         if numIterations > 0:
             numSocket.send(SendCode.INDICATE_INVALID_PLAYERNUM.value.encode())
-            print("Received invalid number of players")
+            print("Received invalid number of players!")
         numPlayerString = numSocket.recv(4).decode()
         numPlayers = int(numPlayerString)
         numIterations = numIterations + 1

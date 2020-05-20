@@ -25,7 +25,7 @@ def join_phase():
     connectedPlayers = 0
     numPlayers = 99 #initialize to number much greater than actual ||players||
     firstPlayer = True
-    joinPort = get_available_port()
+    joinPort = get_available_port(False)
     
     while (connectedPlayers != numPlayers):
         #Socket setup
@@ -47,7 +47,7 @@ def join_phase():
             print("Waiting for " + str(numPlayers - connectedPlayers) + " player(s) to connect")
     
         
-        dataPort = get_available_port()
+        dataPort = get_available_port(True)
         sendString = str(dataPort)
         connectionSocket.send(sendString.encode())
         connectedPlayers = connectedPlayers + 1
@@ -61,15 +61,21 @@ def join_phase():
     
 
 #Return port on which the client can then connect    
-def get_available_port():
+#Input param = do you want to add port to returned port list or not
+def get_available_port(addThisPort):
+    
     portAvailable = 0
     portProspect = 0
+    
     while (portAvailable == 0):
         portProspect = random.randint(1024,65536)
         portLocation = ("127.0.0.1", portProspect)
         testSocket = socket(AF_INET, SOCK_STREAM)
         portAvailable = testSocket.connect_ex(portLocation)
-    dataPorts.append(portProspect)
+    
+    if addThisPort:
+        dataPorts.append(portProspect)
+        
     return portProspect
 
 # Return numPlayers

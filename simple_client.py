@@ -24,10 +24,9 @@ class Client:
         print("Successful connection to server made")
 
         try:
-            print("Waiting to receive server code")
+            print("Waiting to receive server code...")
             serverMessage = clientSocket.recv(4).decode()
             
-            print(serverMessage)
             if serverMessage == SendCode.INDICATE_PLAYER_ONE.value:
                 to_server = input('Welcome to Hana(N)bi! How many players for your game?\n')
                 
@@ -40,9 +39,9 @@ class Client:
                     serverMessage = clientSocket.recv(4).decode()
                     numIterations = numIterations + 1
             else:
-                print('Welcome to your game of Hana(N)bi! Please wait for your port\n')
+                print('Welcome to your game of Hana(N)bi! Please wait for your data port\n')
                 
-            dataPort = clientSocket.recv(4).decode()
+            dataPort = clientSocket.recv(8).decode()
             print("Going to connect on port " + dataPort)    
 
         except EOFError:

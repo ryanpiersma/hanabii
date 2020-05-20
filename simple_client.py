@@ -49,10 +49,16 @@ class Client:
             clientSocket.close()
 
 if __name__ == '__main__':
-    server_ip = input("Enter server IP: ")
+    server_ip = input("Enter server IP (default localhost): ")
+    
     if server_ip == '':
         server_ip = "127.0.0.1"
-    server_port = input("Enter server port: ")
+        
+    if sys.argv[1] == '':
+        server_port = input("Enter server port: ")
+    else:
+        server_port = sys.argv[1]
+        
     client = Client(server_ip, int(server_port))
     client.run()
     def __init__(self, server_ip, server_port):

@@ -43,3 +43,15 @@ of Hana(N)bi and then gives each player a port to connect to in order to send da
 script for a client, rather than "echo_server" unmodified. This must be done before attempting any kind of multithreaded code! (Ryan, duh)
 - Add code to each Hanabi game object method to construct a string that will be sent to the client(s). This will update the appropriate clients
 on what the method changed in the game state (Tahj)
+
+5/21/20
+- Ryan: Completed "join_phase.py" (renamed original "thread_manager.py") and "simple_client.py" --> The two scripts are able to interact in order to establish the number of players in a game as well as distribute and agree on data ports on a per-player basis with no bugs (AFAIK, and I did test lol). 
+
+-Tahj: Made Hanabi object methods return strings to update the client on whats going on; added player naming feature (right now naming players is required to make the Hanabi object); squashed some stupid bugs
+
+TODO:
+Think about/work on the interface between the thread manager and Hanabi object
+
+- Ryan: Continue work on "thread_manager.py" and "simple_client.py" so that threads are created for each player and each player can connect on their data port, hopefully with the ability to easily integrate a flexible interface (the one referenced immediately above)
+
+-Tahj: Write a run method (maybe more like an update function) that can just be called in a loop. This method updates the game state based off of some input that it receives and then returns a message that can be sent to the clients.

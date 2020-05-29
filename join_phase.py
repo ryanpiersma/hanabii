@@ -17,6 +17,7 @@ from send_codes import SendCode
 """
 #define join port globally
 joinPort = 0
+client_ips = []
 dataPorts = []
 sendString = ''
 
@@ -40,6 +41,8 @@ def join_phase():
             print("Waiting for " + str(numPlayers - connectedPlayers) + " player(s) to obtain data port...")
         
         connectionSocket, addr = joinSocket.accept()
+        print("Connection made from address: " + str(addr[0]))
+        client_ips.append(str(addr[0]))
         
         if firstPlayer:
             print("Waiting to determine number of players in game...")  
@@ -49,22 +52,35 @@ def join_phase():
         else:
             connectionSocket.send(SendCode.INDICATE_JOINING_GAME.value.encode())
         
-        dataPort = get_available_port(True)
-        sendString = str(dataPort)
-        connectionSocket.send(sendString.encode())
+        ''' Code from when the server sent the data port rather than the client '''
+        #dataPort = get_available_port(True)
+        #sendString = str(dataPort)
+        #connectionSocket.send(sendString.encode())
+        
         connectedPlayers = connectedPlayers + 1
-        
-        print("\nPLAYER " + str(connectedPlayers) + " HAS OBTAINED DATA PORT \n")
-        
-        connectionSocket.close()
-        
         numIterations = numIterations + 1
-    
+        
+        connectionSocket.send(SendCode.SERVER_REQUEST_DATA_PORT.value.encode())
+        print("Waiting for data port from PLAYER " + str(connectedPlayers))
+        
+        dataPort = int(connectionSocket.recv(8).decode())
+        if (dataPort >= 1024 and dataPort < 65536):
+            print("\nPLAYER " + str(connectedPlayers) + " HAS SENT DATA PORT \n")
+            dataPorts.append(dataPort)
+            connectionSocket.send(SendCode.SERVER_RECEIVED_DATA_PORT.value.encode())
+            
+        closeSignal = connectionSocket.recv(4).decode()
+        if closeSignal == SendCode.CLIENT_CLOSE_SOCKET.value:
+            connectionSocket.close()
+        
     print("All players have been sent a port for data connection!\n")
+        
+    print("Clients have the following IPs: ")
+    print(client_ips)
     
-    print("Will create data connections on following ports: ")
+    print("Will create data connections on following ports for those respective clients: ")
     print(dataPorts)
-    return dataPorts
+    return (client_ips, dataPorts)
     
 
 #Return port on which the client can then connect    

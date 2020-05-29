@@ -80,3 +80,5 @@ Ryan: - Will look into allowing the game to start with an arbitrary number of pl
 Tahj:
 - Debug the timing issue of the update function. Currently, the updated state of the game is displayed one turn too late.
 - Debug hinting mechanism. Currently, the hints do not stack on top of one another. When a player receives a hint, all previous hints are erased.
+
+Testing note from 5/29: Current server code throws an error when run on Linux (written on Windows) due to a port already being in use during the join phase.

@@ -55,3 +55,28 @@ Think about/work on the interface between the thread manager and Hanabi object
 - Ryan: Continue work on "thread_manager.py" and "simple_client.py" so that threads are created for each player and each player can connect on their data port, hopefully with the ability to easily integrate a flexible interface (the one referenced immediately above)
 
 -Tahj: Write a run method (maybe more like an update function) that can just be called in a loop. This method updates the game state based off of some input that it receives and then returns a message that can be sent to the clients.
+
+5/29/20
+Notes on integrating Ryan and Tahj's code...
+- Ryan will add functionality for players entering their name. Once the join phase (with this addition) is complete, these will be passed to Tahj's code in order to instantiate the Hanabi game object (from an interface???)
+- Tahj's update() method in main.py will need to be integrated with the thread manager for various reasons, including
+      1) Translating calls in the Hanabi game object to 'notify()' and 'broadcast()' to functions in the thread manager that activate select (or all) threads for data transfer
+      2) Creating some sort of simple information transfer protocol for relaying hints, playing, discarding
+         (This hopefully wouldn't be much more than packaging the messages that you already generate)
+      3) Making sure that individual players are able to receive their individual view of the game
+
+Ryan: Refactored "join_phase.py" and "hanabi_client.py" (renamed from "simple_client.py") in order to accommodate the creation of data connections between the client and the servers, which has been shown to
+work correctly!
+
+Tahj: Implemented messaging scheme for updating players about how the state of the game just changed (see update() function) and tested this out using fake Scooby-Doo characters.
+
+TODO
+
+Ryan: - Will look into allowing the game to start with an arbitrary number of players (less than 5), making use of Player 1 being able to trigger a start signal for the game (LEAST PRIORITY, MAYBE WAIT FOR NOW)
+      - Allow players to enter their name
+      - Create thread manager (i.e. use threads so that the server can send data to specific players) 
+        MAIN PRIORITY
+
+Tahj:
+- Debug the timing issue of the update function. Currently, the updated state of the game is displayed one turn too late.
+- Debug hinting mechanism. Currently, the hints do not stack on top of one another. When a player receives a hint, all previous hints are erased.

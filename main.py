@@ -7,11 +7,13 @@ class Hanabi():
         
         self.playerNames = playerNames
         self.numPlayers = len(playerNames)
-        self.currPlayer = 0
+        self.currPlayer = -1
+        self.messages = {name: [] for name in self.playerNames}
 
         self.hints = 8
         self.mistakesRem = 3
         self.turnsRem = -1
+        self.isGameOver = False
 
         self.display = {'R': 0, 'G': 0, 'B': 0, 'Y': 0, 'W': 0}
         self.discardPile = []
@@ -19,6 +21,9 @@ class Hanabi():
 
         self.deck = self.makeDeck()
         self.hands, self.hintHands = self.dealHands(self.deck)
+
+        self.broadcast("Welcome to Hanabi!")
+        self.nextPlayer()
 
     # Deck functions
     def addToDeck(self, deck, card, number):
@@ -46,7 +51,7 @@ class Hanabi():
             handSize = 4
 
         hands, hintHands = [], []
-        for _ in range(len(self.numPlayers)): 
+        for _ in range(self.numPlayers): 
             hand = []
             for _ in range(handSize):
                 hand.append(deck.pop())
@@ -55,24 +60,47 @@ class Hanabi():
 
         return hands, hintHands
 
+    
+
+    # Messaging functions
+    def notify(self, message, player):
+        self.messages[self.playerNames[player]].append(message)
+    
+    def broadcast(self, message):
+        for player in range(self.numPlayers):
+            self.notify(message, player)
+
     def displayHands(self):
-        handStr = ""
-        for player in self.playerNames:
-            handStr += player + ": "
+        for player in range(self.numPlayers):
+            handStr = "What you see:" + "\t" * 2 + "Hints given:\n"
+            for playerNum in range(self.numPlayers):
+                handStr += self.playerNames[playerNum] + ": "
 
-            for card in self.hands[player]:
-                if player == self.currPlayer:
-                    handStr += "** "
-                else:
+                for card in self.hands[playerNum]:
+                    if playerNum == player:
+                        handStr += "** "
+                    else:
+                        handStr += card + " "
+
+                handStr += "\t" * 2
+
+                for card in self.hintHands[playerNum]:
                     handStr += card + " "
+                handStr += "\n"
 
-            handStr += "\t" * 2
+            self.notify(handStr, player)
 
-            for card in self.hintHands[player]:
-                handStr += card + " "
-            handStr += "\n"
-        return handStr
+    def displayGameState(self):
+        self.broadcast("Here is the current state of the display:\n" + str(self.display))
+        self.broadcast("Here is the discard pile:\n" + str(self.discardPile))
+        self.broadcast("Hints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
+        self.displayHands()
 
+    def clearMessages(self):
+        for messageList in self.messages.values():
+            messageList.clear()
+
+    # Game state update functions
     def addHint(self):
         if self.hints < 8:
             self.hints += 1
@@ -86,7 +114,7 @@ class Hanabi():
             # Last card was drawn and deck is now empty
             if not self.deck:
                 self.turnsRem = 5
-                return "Last card drawn. Everyone gets one last action!"
+                self.broadcast("Last card drawn. Everyone gets one last action!")
             
 
     def play(self, cardPos):
@@ -100,7 +128,8 @@ class Hanabi():
             self.discardPile.append(pick)
             self.mistakesRem -= 1
         self.draw()
-        return self.playerNames[self.currPlayer] + " played " + pick + "."
+
+        self.broadcast(self.playerNames[self.currPlayer] + " played " + pick + ".")
         
 
     def discard(self, cardPos):
@@ -109,7 +138,8 @@ class Hanabi():
         self.hintHands[self.currPlayer].pop(cardPos)
         self.addHint()
         self.draw()
-        return self.playerNames[self.currPlayer] + " discarded " + pick + "."
+        
+        self.broadcast(self.playerNames[self.currPlayer] + " discarded " + pick + ".")
 
     def giveHint(self, recipient, hint):
         hand = self.hands[recipient]
@@ -122,13 +152,65 @@ class Hanabi():
                     card += "*"
             self.hintHands[recipient][i] = card
         self.hints -= 1
-        return self.playerNames[self.currPlayer] + " gave hint to " + self.playerNames[recipient] + " about " + hint + "'s."
+        
+        self.broadcast(self.playerNames[self.currPlayer] + " gave hint to " + self.playerNames[recipient] + " about " + hint + "'s.")
 
     def nextPlayer(self):
         self.currPlayer += 1
         if self.currPlayer == self.numPlayers:
             self.currPlayer = 0
-        return "It's " + self.playerNames[self.currPlayer] + "'s turn!"
+        
+        if self.turnsRem > 0:
+            self.turnsRem -= 1
+        
+        self.broadcast("It's " + self.playerNames[self.currPlayer] + "'s turn!")
+
+    def parseCommand(self, command):
+        if command:
+            action = command[0]
+            if action == "P":
+                self.play(int(command[1]) - 1)
+                self.nextPlayer()
+            elif action == "D":
+                self.discard(int(command[1]) - 1)
+                self.nextPlayer()
+            elif action == "H":
+                self.giveHint(int(command[1]) - 1, command[2])
+                self.nextPlayer()
+            else:
+                self.notify("Not a valid choice. Please type H, P, or D.", self.currPlayer)
+
+    '''
+    This method takes in a command, updates the state of the Hanabi object, then returns messages to the appropriate players.
+
+    Recognized Commands:
+        - P<card_number>
+        - D<card_number>
+        - H<player><hint>
+    '''
+    def update(self, command):
+        self.clearMessages()
+        if not self.isGameOver:
+            self.displayGameState()
+            self.parseCommand(command)        
+            self.isGameOver = self.mistakesRem == 0 or self.turnsRem == 0
+
+        if not self.isGameOver:
+            self.notify("Pick an action:\n\tH: HINT\n\tP: PLAY\n\tD: DISCARD\n\nAction (H/P/D): ", self.currPlayer)
+        else:
+            self.broadcast("Game over!\nYou scored " + str(sum(self.display.values())) + " points!")
+        
+        return self.messages
+
+# Testing. Testing. 1, 2, 3.
+hanabi = Hanabi(["Fred", "Daphne", "Velma", "Shaggy", "Scooby"])
+message = ""
+while not hanabi.isGameOver:
+    messages = hanabi.update(input())
+    for player in messages:
+        for message in messages[player]:
+            print(message)
+    
 
     # This will have to use the thread manager
     # def run(self):

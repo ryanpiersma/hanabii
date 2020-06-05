@@ -81,6 +81,7 @@ Tahj:
 - Debug the timing issue of the update function. Currently, the updated state of the game is displayed one turn too late.
 - Debug hinting mechanism. Currently, the hints do not stack on top of one another. When a player receives a hint, all previous hints are erased.
 
+<<<<<<< HEAD
 6/5/20
 Tahj: Performed debugging tasks that he said he would. Yay?
 
@@ -131,3 +132,6 @@ Tahj - Refactoring the Game object to account for client/server architecture
   4. Pass only smaller messages (not the complete game state)
 
 After this has been successfully completed: Collaborate to make message passing successfully go between thread management and the different copies of the game
+=======
+Testing note from 5/29: Current server code throws an error when run on Linux (written on Windows) due to a port already being in use during the join phase.
+>>>>>>> 27187d667d96b2ce52eec86698e39627ac14c741

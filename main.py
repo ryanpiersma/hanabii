@@ -143,14 +143,15 @@ class Hanabi():
 
     def giveHint(self, recipient, hint):
         hand = self.hands[recipient]
+        hintHand = self.hintHands[recipient]
         for i in range(len(hand)):
             card = ""
-            for letter in hand[i]:
-                if letter == hint:
-                    card += letter
+            for j in range(len(hand[i])):
+                if hand[i][j] == hint:
+                    card += hand[i][j]
                 else:
-                    card += "*"
-            self.hintHands[recipient][i] = card
+                    card += hintHand[i][j]
+            hintHand[i] = card
         self.hints -= 1
         
         self.broadcast(self.playerNames[self.currPlayer] + " gave hint to " + self.playerNames[recipient] + " about " + hint + "'s.")
@@ -191,8 +192,8 @@ class Hanabi():
     def update(self, command):
         self.clearMessages()
         if not self.isGameOver:
+            self.parseCommand(command)
             self.displayGameState()
-            self.parseCommand(command)        
             self.isGameOver = self.mistakesRem == 0 or self.turnsRem == 0
 
         if not self.isGameOver:

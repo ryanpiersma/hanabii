@@ -80,3 +80,54 @@ Ryan: - Will look into allowing the game to start with an arbitrary number of pl
 Tahj:
 - Debug the timing issue of the update function. Currently, the updated state of the game is displayed one turn too late.
 - Debug hinting mechanism. Currently, the hints do not stack on top of one another. When a player receives a hint, all previous hints are erased.
+
+6/5/20
+Tahj: Performed debugging tasks that he said he would. Yay?
+
+Ryan: Conceptualized thread manager but did not code one single line of code. At least for this project.
+
+THE THREAD MANAGER:
+- Method for controlling thread activation: condition variable
+
+Condition variable: notify() - lock associated with condition variable is released, first thread on queue waiting for this condition variable gets the lock, wait() - put a thread on a queue associated with that condition variable, broadcast() - wake all threads associated with condition variable
+
+- One condition variable per client
+
+- Global list of condition variables. The "thread managing" part is basically notifying the right clients by calling notify() on the right condition variable.
+
+- Globally defined order for thread activation through list of integers.
+For Hanabi, something like for a four player game [1, 2, 3, 4]
+For a complex game [1, 2, 3, 4, 2, 3, 4] (skip player 1 on every other cycle)
+
+- How do we process the data from the threads? A global queue of messages. In the threaded function, once the message is received from the client, it is pushed onto the global "receive message" queue.
+
+- Two types of threads (i.e. I write two threaded functions). One will be a game_manager(), the rest will be game_player() (or some other similar name). The game_players are associated with the data connections to each of the clients. Their function is to push data on to the global message queue when they are activated and the clients send data. The game_manager I guess is like the interface with the Hanabi game. It is what is activating condition variables based on the order, pulling messages off the global "receive message queue", and pushing messages onto a second "send message" queue. 
+
+Tahj recommends: "Use what comes from the update function!" Will def look into this :)
+
+Use a client ID as the name (keys to the update dictionary)
+
+- Receive one thing from the "receive message" queue at a time. Implement by triggering an Event every time the "receive message" queue is pushed to
+
+- Seems like the thread manager will comprise two threaded functions called in "thread_manager.py". There will be n + 1 threads, where n is the number of players in the Hanabi game. "n" of the threads will be "game_players" that will be using the "game_player()" threaded function. The remaining thread is a "game_manager" that uses the "game_manager()" threaded function. Additionally, the following global data structures will be implemented: a queue for receiving messages, a queue for sending messages, a list describing the order in which game_player threads will be updated, and a list of condition variable objects that correspond to each client.
+
+- In order to handle a universal update to the game state (or something that is essentially universal...?) we will send something to all the clients. We can use an "n+1"th condition variable that all the game_players are associated with. By broadcasting on this condition variable, we can send all threads the correct game state update as a result of the individual player's action.
+----------------------------------------------------------------------------------------------------------
+Adding a Hand class?
+
+"Hand" --> has "isVisible" state variable
+update_hand(position, card) --> replaces card at position "position" with card "card"
+
+"Bob played whatever and drew a white 1" = message to server from Bob --> in Hanabi game bob.update_hand(position, white 1)
+-----------------------------------------------------------------------------------------------------------
+TODO:
+
+Ryan - Actually code the thread manager! Oh god... Rough specification has been typed above!
+
+Tahj - Refactoring the Game object to account for client/server architecture
+  1. Make two Hanabi game objects: a server one and a client one (where the client one is a dumber version of the server one)
+  2. Make player & hand objects
+  3. Get rid of hintHands
+  4. Pass only smaller messages (not the complete game state)
+
+After this has been successfully completed: Collaborate to make message passing successfully go between thread management and the different copies of the game

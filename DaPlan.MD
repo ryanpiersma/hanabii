@@ -133,3 +133,11 @@ Tahj - Refactoring the Game object to account for client/server architecture
   4. Pass only smaller messages (not the complete game state)
 
 After this has been successfully completed: Collaborate to make message passing successfully go between thread management and the different copies of the game
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+Testing note, 6/12: May want to look into handling "ConnectionResetErrors", I envision this will be necessary to handle bad 
+network connections in the future. (Ryan)
+
+Testing note, 6/12: Another situation currently not handled super well - A second player is trying to join while the first player
+is inputting the number of players. Might go away when restructuring join phase to account for flexible number of players.
+
+Refactoring note, 6/12: Handle that thread manager has a global numPlayers, but it is also separately passed into game_manager(). Will become annoying??

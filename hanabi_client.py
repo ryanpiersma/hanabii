@@ -10,8 +10,8 @@ from socket import *
 from send_codes import SendCode
 import sys  # In order to terminate the program
 import random
-
-        
+import time
+   
 
 def send_data_port(server_ip, server_port):
 
@@ -25,7 +25,7 @@ def send_data_port(server_ip, server_port):
         serverMessage = clientSocket.recv(4).decode()
     
         if serverMessage == SendCode.INDICATE_PLAYER_ONE.value:
-            to_server = input('Welcome to Hana(N)bi! How many players for your game?\n')
+            to_server = input('Welcome to Hanabii! How many players for your game?\n')
         
             numIterations = 0
             while (serverMessage != SendCode.INDICATE_VALID_PLAYERNUM.value):
@@ -36,7 +36,7 @@ def send_data_port(server_ip, server_port):
                 serverMessage = clientSocket.recv(4).decode()
                 numIterations = numIterations + 1
         else:
-            print('Welcome to your game of Hana(N)bi!\n')
+            print('Welcome to your game of Hanabii!\n')
              
         serverMessage = clientSocket.recv(4).decode()
         while (serverMessage != SendCode.SERVER_REQUEST_DATA_PORT.value):
@@ -64,8 +64,12 @@ def open_data_socket(dataPort):
     dataSocket.bind(('', dataPort))
     dataSocket.listen(1)
     
-    dataSocket.accept()
+    serverDataSocket, addr = dataSocket.accept()
     print("Successful data connection created")
+    
+    while True:
+        serverDataSocket.send("Confirming data connection with server".encode())
+        time.sleep(2) #For now, client sending a message every two seconds.
 
 
 def get_available_port():

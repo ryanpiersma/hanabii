@@ -20,12 +20,9 @@ globalLock = threading.Lock() #Any thread can release primitive lock. This means
 
 gameFinished = False
 
-def create_condition_variables(num_players):
-    for i in range(num_players + 1):
-        #Create condition variables for each player in the game + 1
-        threadActivatorList.append(threading.Condition(globalLock))
+playerOrder = []
 
-def game_manager():
+def game_manager(): #Goal + TODO = Use game manager to both spawn and control game players
     return 0
     
 def game_player(player_id, player_ip, player_data_port):
@@ -57,6 +54,10 @@ def establish_data_connection(client_ip, data_port): #Call this fcn thru game_ma
     
     return dataSocket
     
+def create_condition_variables(num_players):
+    for i in range(num_players + 1):
+        #Create condition variables for each player in the game + 1
+        threadActivatorList.append(threading.Condition(globalLock))
   
 if __name__ == "__main__":
     (client_ips, data_ports) = jp.join_phase()

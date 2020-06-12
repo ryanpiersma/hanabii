@@ -3,12 +3,14 @@ import random
 
 class Hanabi():
 
-    def __init__(self, playerNames):
+    # Takes in a list of Player objects
+    def __init__(self, players):
         
-        self.playerNames = playerNames
-        self.numPlayers = len(playerNames)
+        self.players = players
+        self.numPlayers = len(self.players)
         self.currPlayer = -1
-        self.messages = {name: [] for name in self.playerNames}
+        self.currPlayerIndex = -1
+        self.messages = {player: [] for player in self.players}
 
         self.hints = 8
         self.mistakesRem = 3
@@ -20,7 +22,7 @@ class Hanabi():
         self.colors = self.display.keys()
 
         self.deck = self.makeDeck()
-        self.hands, self.hintHands = self.dealHands(self.deck)
+        self.dealHands()
 
         self.broadcast("Welcome to Hanabi!")
         self.nextPlayer()
@@ -44,48 +46,38 @@ class Hanabi():
         random.shuffle(deck)
         return deck
 
-    def dealHands(self, deck):
+    def dealHands(self):
         if self.numPlayers == 2 or self.numPlayers == 3:
             handSize = 5
         elif self.numPlayers == 4 or self.numPlayers == 5:
             handSize = 4
 
-        hands, hintHands = [], []
-        for _ in range(self.numPlayers): 
-            hand = []
+        for player in self.players:
             for _ in range(handSize):
-                hand.append(deck.pop())
-            hands.append(hand)
-            hintHands.append(["**"]*handSize)
-
-        return hands, hintHands
+                player.hand.append(self.deck.pop())
 
     
 
     # Messaging functions
     def notify(self, message, player):
-        self.messages[self.playerNames[player]].append(message)
+        self.messages[player].append(message)
     
     def broadcast(self, message):
-        for player in range(self.numPlayers):
+        for player in self.players:
             self.notify(message, player)
 
     def displayHands(self):
-        for player in range(self.numPlayers):
-            handStr = "What you see:" + "\t" * 2 + "Hints given:\n"
-            for playerNum in range(self.numPlayers):
-                handStr += self.playerNames[playerNum] + ": "
+        for player in self.players:
+            handStr = "What you see:\n"
+            for otherPlayer in self.players:
+                handStr += otherPlayer.name + ": "
 
-                for card in self.hands[playerNum]:
-                    if playerNum == player:
+                for card in otherPlayer.hand:
+                    if otherPlayer == player:
                         handStr += "** "
                     else:
                         handStr += card + " "
 
-                handStr += "\t" * 2
-
-                for card in self.hintHands[playerNum]:
-                    handStr += card + " "
                 handStr += "\n"
 
             self.notify(handStr, player)
@@ -108,8 +100,7 @@ class Hanabi():
     def draw(self):
         if self.deck:
             card = self.deck.pop()
-            self.hands[self.currPlayer].append(card) # Replace this with function allowing player to choose where in hand they place the 
-            self.hintHands[self.currPlayer].append("**")
+            self.currPlayer.hand.append(card) # Replace this with function allowing player to choose where in hand they place the 
 
             # Last card was drawn and deck is now empty
             if not self.deck:
@@ -118,8 +109,7 @@ class Hanabi():
             
 
     def play(self, cardPos):
-        pick = self.hands[self.currPlayer].pop(cardPos)
-        self.hintHands[self.currPlayer].pop(cardPos)
+        pick = self.currPlayer.hand.pop(cardPos)
         if int(pick[1]) - 1 == self.display[pick[0]]:
             self.display[pick[0]] = int(pick[1])
             if self.display[pick[0]] == 5:
@@ -129,42 +119,43 @@ class Hanabi():
             self.mistakesRem -= 1
         self.draw()
 
-        self.broadcast(self.playerNames[self.currPlayer] + " played " + pick + ".")
+        self.broadcast(self.currPlayer.name + " played " + pick + ".")
         
 
     def discard(self, cardPos):
-        pick = self.hands[self.currPlayer].pop(cardPos)
+        pick = self.currPlayer.hand.pop(cardPos)
         self.discardPile.append(pick)
-        self.hintHands[self.currPlayer].pop(cardPos)
         self.addHint()
         self.draw()
         
-        self.broadcast(self.playerNames[self.currPlayer] + " discarded " + pick + ".")
+        self.broadcast(self.currPlayer.name + " discarded " + pick + ".")
 
     def giveHint(self, recipient, hint):
-        hand = self.hands[recipient]
-        hintHand = self.hintHands[recipient]
-        for i in range(len(hand)):
-            card = ""
-            for j in range(len(hand[i])):
-                if hand[i][j] == hint:
-                    card += hand[i][j]
-                else:
-                    card += hintHand[i][j]
-            hintHand[i] = card
+        ### No longer needed w/o hintHands
+        # hand = recipient.hand
+        # for i in range(len(hand)):
+        #     card = ""
+        #     for j in range(len(hand[i])):
+        #         if hand[i][j] == hint:
+        #             card += hand[i][j]
+        #         else:
+        #             card += hintHand[i][j]
+        #     hintHand[i] = card
+
         self.hints -= 1
         
-        self.broadcast(self.playerNames[self.currPlayer] + " gave hint to " + self.playerNames[recipient] + " about " + hint + "'s.")
+        self.broadcast(self.currPlayer.name + " gave hint to " + recipient.name + " about " + hint + "'s.")
 
     def nextPlayer(self):
-        self.currPlayer += 1
-        if self.currPlayer == self.numPlayers:
-            self.currPlayer = 0
+        self.currPlayerIndex += 1
+        if self.currPlayerIndex == self.numPlayers:
+            self.currPlayerIndex = 0
+        self.currPlayer = self.players[self.currPlayerIndex]
         
         if self.turnsRem > 0:
             self.turnsRem -= 1
         
-        self.broadcast("It's " + self.playerNames[self.currPlayer] + "'s turn!")
+        self.broadcast("It's " + self.currPlayer.name + "'s turn!")
 
     def parseCommand(self, command):
         if command:
@@ -176,7 +167,7 @@ class Hanabi():
                 self.discard(int(command[1]) - 1)
                 self.nextPlayer()
             elif action == "H":
-                self.giveHint(int(command[1]) - 1, command[2])
+                self.giveHint(self.players[int(command[1]) - 1], command[2])
                 self.nextPlayer()
             else:
                 self.notify("Not a valid choice. Please type H, P, or D.", self.currPlayer)
@@ -203,63 +194,25 @@ class Hanabi():
         
         return self.messages
 
+
+class Player():
+
+    def __init__(self, name):
+        self.name = name
+        self.hand = []
+
+
 # Testing. Testing. 1, 2, 3.
-hanabi = Hanabi(["Fred", "Daphne", "Velma", "Shaggy", "Scooby"])
-message = ""
+
+fred = Player("Fred")
+daphne = Player("Daphne")
+velma = Player("Velma")
+shaggy = Player("Shaggy")
+scooby = Player("Scooby")
+
+hanabi = Hanabi([fred, daphne, velma, shaggy, scooby])
 while not hanabi.isGameOver:
     messages = hanabi.update(input())
     for player in messages:
         for message in messages[player]:
             print(message)
-    
-
-    # This will have to use the thread manager
-    # def run(self):
-    #     print("Welcome to Hanabi!")
-
-    #     while True:
-    #         for player in range(numPlayers):
-    #             print("\nHere is the current state of the display:")
-    #             print(display)
-
-    #             print("\nHere is the discard pile:")
-    #             print(discardPile)
-
-    #             print("\nHints: " + str(hints) + "\tMistakes remaining: " + str(mistakesRem))
-
-    #             print("\nWhat you see:" + "\t" * 2 + "Hints given:")
-    #             printHands(player)
-
-    #             while True:
-    #                 action = input("\nPlayer " + str(player + 1) + ", pick an action:\nH: HINT\nP: PLAY\nD: DISCARD\n\nAction (H/P/D): ")
-
-    #                 if action == "H":
-    #                     if hints > 0:
-    #                         recipient = int(input("Who will receive the hint: ")) - 1
-    #                         hint = input("Hint: ")
-    #                         giveHint(recipient, hint)
-    #                         break
-    #                     else:
-    #                         print("No more hints. Choose a different action.")
-    #                 elif action == "P":
-    #                     pick = int(input("Pick a card (1-" + str(handSize) + "): ")) - 1
-    #                     play(player, pick)
-    #                     break
-    #                 elif action == "D":
-    #                     pick = int(input("Pick a card (1-" + str(handSize) + "): ")) - 1
-    #                     discard(player, pick)
-    #                     break
-    #                 else:
-    #                     print("Not a valid choice. Please type H, P, or D.")
-
-    #             if turnsRem > 0:
-    #                 turnsRem -= 1
-                
-    #             if mistakesRem == 0 or turnsRem == 0:
-    #                 break
-            
-    #         if mistakesRem == 0 or turnsRem == 0:
-    #             break
-
-    #     print("\nGame over!")
-    #     print("You scored " + str(sum(display.values())) + " points!")

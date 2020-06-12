@@ -47,13 +47,17 @@ def game_manager(num_players, ip_list, port_list):
     print("***Game players have successfully established data connections***\n")
     
     
-    print("***Game will now begin! LETS RUMBLE***")
+    print("***Game will now begin! LETS RUMBLE***\n")
     
     totalTurnLimit = 20 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
     turnCounter = 0
     currentPlayer = 0
+    roundCounter = 0
     
     while turnCounter < totalTurnLimit: #gameFinished != True:
+        if currentPlayer == 0:
+            roundCounter = roundCounter + 1
+            print("^^^BEGIN ROUND " + str(roundCounter) + " ^^^")
         threadActivatorList[playerOrder[currentPlayer]].notify()
         currentPlayer = (currentPlayer + 1) % num_players
         turnCounter = turnCounter + 1
@@ -82,11 +86,11 @@ def game_player(player_id, player_ip, player_data_port):
     while gameFinished != True:
         
         #Making receiving a message from a game player an atomic task
-        print("Server waiting on a message from player " + str(player_id+1) + "...\n")
+        print("Server waiting on a message from player " + str(player_id+1) + "...")
         playerMessage = playerDataSocket.recv(32)
         messageTuple = (player_id, playerMessage)
         receiveMessageQueue.put(messageTuple)
-        print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE")
+        print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE\n")
         
         threadActivatorList[numPlayers].notify() #Using n+1 condition variable to reactivate manager
         threadActivatorList[player_id].wait() #Release the lock, wait on assigned condition variable

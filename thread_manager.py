@@ -10,7 +10,9 @@ import threading
 import queue
 from socket import *
 
-threadActivationList = [] #Populate this w condition variables
+threadActivatorList = [] #Populate this w condition variables
+sendMessageQueue = queue.Queue(0) #TODO: Decide reasonable size for these queues
+receiveMessageQueue = queue.Queue(0)
 
 def create_condition_variables(num_players):
     return 0

@@ -49,7 +49,7 @@ def game_manager(num_players, ip_list, port_list):
     
     print("***Game will now begin! LETS RUMBLE***")
     
-    totalTurnLimit = 50 #This will not exist in final version (?) . Just for demo of basic functionality
+    totalTurnLimit = 20 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
     turnCounter = 0
     currentPlayer = 0
     

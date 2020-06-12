@@ -141,3 +141,13 @@ Testing note, 6/12: Another situation currently not handled super well - A secon
 is inputting the number of players. Might go away when restructuring join phase to account for flexible number of players.
 
 Refactoring note, 6/12: Handle that thread manager has a global numPlayers, but it is also separately passed into game_manager(). Will become annoying??
+
+TODO:
+
+Ryan - Complete thread manager (implement flexible way of sending messages to clients) 
+
+Tahj - Finish stuff from last week
+  1. Make two Hanabi game objects: a server one and a client one (where the client one is a dumber version of the server one
+  2. Pass only smaller messages (not the complete game state)
+
+  ... and fix hinting because it broke now

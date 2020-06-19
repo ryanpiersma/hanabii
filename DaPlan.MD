@@ -151,3 +151,16 @@ Tahj - Finish stuff from last week
   2. Pass only smaller messages (not the complete game state)
 
   ... and fix hinting because it broke now
+  
+-----------------------------------------------------------------------------------------------------------------------------
+Ryan - Finished thread manager, but is buggy (main issue seems to be a correct interpretation of when messages are sent from the client)
+
+Tahj - Implemented Client/Server versions of the Hanabi class
+
+TODO:
+Both Ryan and Tahj will try to debug their code as much as possible before having two peer coding sessions next week
+
+Ryan: Fix messaging bug, maybe try generating garbage messages to send to client to verify this functionality,
+      Refactor join_phase to allow players to join on a rolling basis, gather player names that will be needed for the Game object
+
+Tahj: Update shuffling so that random seed is passed to hanabi client games. Sending which cards are drawn will now not be necessary anymore.

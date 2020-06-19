@@ -65,11 +65,24 @@ def open_data_socket(dataPort):
     dataSocket.listen(1)
     
     serverDataSocket, addr = dataSocket.accept()
-    print("Successful data connection created")
+    print("Successful data connection created with server")
+    
+    return serverDataSocket
+
+def play_game(socket):
     
     while True:
-        serverDataSocket.send("Confirming data connection with server".encode())
-        time.sleep(2) #For now, client sending a message every two seconds.
+        serverMessage = socket.recv(4).decode()
+        
+        socket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
+        
+        if serverMessage == SendCode.CLIENT_PROMPT_MESSAGE.value:
+            sendServer = input('Input your game action: ')
+            socket.send(sendServer.encode())
+            
+        elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
+            clientAction = socket.recv(256).decode()
+            print(clientAction)
 
 
 def get_available_port():
@@ -100,4 +113,7 @@ if __name__ == '__main__':
     dataPort = send_data_port(server_ip, int(server_port))
     
     print("Client will open socket for its data port and alert when connected to server")
-    open_data_socket(dataPort)
+    serverSocket = open_data_socket(dataPort)
+    
+    print("A socket has been successfully created. Let's play HANABII")
+    play_game(serverSocket)

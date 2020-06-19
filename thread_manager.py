@@ -9,11 +9,13 @@ import join_phase as jp
 import threading
 import queue
 from socket import *
+from send_codes import SendCode
 
 
 threadActivatorList = [] #Populate this w condition variables
 
-sendMessageQueue = queue.Queue(0) #TODO: Decide reasonable size for these queues? Will infinite work??
+sendClientQueue = queue.Queue(0) #TODO: Decide reasonable size for these queues? Will infinite work??
+sendMessageQueue = queue.Queue(0) 
 receiveMessageQueue = queue.Queue(0)
 
 globalLock = threading.Lock() #Any thread can release primitive lock. This means manager can release the lock when needed??
@@ -23,6 +25,9 @@ gameFinished = False
 playerOrder = []
 
 numPlayers = 0
+
+sendReceiveToggle = False #control whether you want to send or receive a message to one of the clients
+#True = send, False = receive
 
 def game_manager(num_players, ip_list, port_list):
     
@@ -49,12 +54,21 @@ def game_manager(num_players, ip_list, port_list):
     
     print("***Game will now begin! LETS RUMBLE***\n")
     
-    totalTurnLimit = 20 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
+    totalTurnLimit = 5 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
     turnCounter = 0
     currentPlayer = 0
     roundCounter = 0
     
     while turnCounter < totalTurnLimit: #gameFinished != True:
+        # SEND PHASE
+        sendReceiveToggle = True
+        while not sendMessageQueue.empty():
+            client = sendClientQueue.get()
+            threadActivatorList[client - 1].notify()
+            threadActivatorList[numPlayers].wait()
+        
+        # RECEIVE PHASE
+        sendReceiveToggle = False
         if currentPlayer == 0:
             roundCounter = roundCounter + 1
             print("^^^BEGIN ROUND " + str(roundCounter) + " ^^^")
@@ -83,15 +97,30 @@ def game_player(player_id, player_ip, player_data_port):
     threadActivatorList[player_id].wait()
     
     #Wait until a message is received, then put it on the receive message queue
-    while gameFinished != True:
+    while not gameFinished:
         
-        #Making receiving a message from a game player an atomic task
-        print("Server waiting on a message from player " + str(player_id+1) + "...")
-        playerMessage = playerDataSocket.recv(32)
-        messageTuple = (player_id, playerMessage)
-        receiveMessageQueue.put(messageTuple)
-        print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE\n")
-        
+        if sendReceiveToggle:
+            print("~~~ SEND PHASE, PLAYER " + str(player_id + 1) + " ~~~")
+            print("Sending message to player " + str(player_id + 1))
+            if not sendMessageQueue.empty():
+                playerDataSocket.send(SendCode.CLIENT_RECV_MESSAGE.value.encode())
+                response = playerDataSocket.recv(4).decode()
+                if reponse == SendCode.CLIENT_ACK_MESSAGE.value:
+                    playerDataSocket.send(sendMessageQueue.get().encode())
+            
+        else:
+            print("~~~ RECEIVE PHASE, PLAYER " + str(player_id + 1) + " ~~~")
+            print("Server waiting on a message from player " + str(player_id+1) + "...")
+            
+            playerDataSocket.send(SendCode.CLIENT_PROMPT_MESSAGE.value.encode())
+            response = playerDataSocket.recv(4).decode()
+            
+            if response == SendCode.CLIENT_ACK_MESSAGE.value:
+                playerMessage = playerDataSocket.recv(32)
+                messageTuple = (player_id, playerMessage)
+                receiveMessageQueue.put(messageTuple)
+            print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE\n")
+            
         threadActivatorList[numPlayers].notify() #Using n+1 condition variable to reactivate manager
         threadActivatorList[player_id].wait() #Release the lock, wait on assigned condition variable
     

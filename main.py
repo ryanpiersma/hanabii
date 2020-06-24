@@ -1,11 +1,11 @@
 import random
-
+import sys
 
 class Hanabi():
 
 
     # Takes in a list of Player objects
-    def __init__(self, players, og=True, owner=None):
+    def __init__(self, players, og=True, owner=None, seed=None):
         
         self.players = players
         self.numPlayers = len(self.players)
@@ -22,6 +22,14 @@ class Hanabi():
         self.discardPile = []
         self.colors = self.display.keys()
 
+        if seed:
+            self.seed = seed
+        else:
+            self.seed = random.randrange(sys.maxsize)
+
+        self.deck = self.makeDeck()
+        self.dealHands()
+        
         self.og = og
         self.commands = {
             'P': lambda args : self.play(int(args[0])),
@@ -31,11 +39,6 @@ class Hanabi():
         
         if self.og:
             self.messages = {player: [] for player in self.players}
-            self.deck = self.makeDeck()
-            self.dealHands()
-        else:
-            self.commands['+'] = lambda args : self.currPlayer.hand.append(args[0])
-            self.commands['>'] = lambda : self.nextPlayer()
 
         print("Welcome to Hanabi!")
         self.nextPlayer()
@@ -58,6 +61,7 @@ class Hanabi():
                 else:
                     number = 2
                 self.addToDeck(deck, color[0] + str(i), number)
+        random.seed(self.seed)
         random.shuffle(deck)
         return deck
 
@@ -139,6 +143,7 @@ class Hanabi():
         else:
             self.discardPile.append(pick)
             self.mistakesRem -= 1
+        self.draw()
         
         print(self.currPlayer.name + " played " + pick + ".")
         
@@ -147,6 +152,7 @@ class Hanabi():
         pick = self.currPlayer.hand.pop(cardPos - 1)
         self.discardPile.append(pick)
         self.addHint()
+        self.draw()
         
         print(self.currPlayer.name + " discarded " + pick + ".")
 
@@ -190,10 +196,7 @@ class Hanabi():
                     self.commands[action]()
                 if self.og:
                     self.broadcast(command)
-                    if action in ['P', 'D']:
-                        self.broadcast(('+', self.draw()))
-                    self.nextPlayer()
-                    self.broadcast(('>'))
+                self.nextPlayer()
             elif self.og:
                 self.notify("Not a valid choice. Please type H, P, or D.", self.currPlayer)
 
@@ -243,18 +246,16 @@ shaggy = Player("Shaggy")
 scooby = Player("Scooby")
 
 ogGame = Hanabi([fred, daphne, velma, shaggy, scooby])
+games = {owner: Hanabi([Player(player.name) for player in ogGame.players], og=False, owner=owner, seed=ogGame.seed) for owner in ogGame.players}
 
-games = {
-    fred: Hanabi([fred, daphne, velma, shaggy, scooby], og=False, owner=fred),
-    daphne: Hanabi([fred, daphne, velma, shaggy, scooby], og=False, owner=daphne),
-    velma: Hanabi([fred, daphne, velma, shaggy, scooby], og=False, owner=velma),
-    shaggy: Hanabi([fred, daphne, velma, shaggy, scooby], og=False, owner=shaggy),
-    scooby: Hanabi([fred, daphne, velma, shaggy, scooby], og=False, owner=scooby)
-}
+# print(ogGame.deck)
+# print()
+# for game in games.values():
+#     print(game.deck)
 
 while not ogGame.isGameOver:
     messages = ogGame.update([ch for ch in input()])
     for player in messages:
         for message in messages[player]:
             games[player].update(message)
-    games[scooby].displayGameState()
+        games[player].displayGameState()

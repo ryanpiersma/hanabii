@@ -208,8 +208,6 @@ class Hanabi():
         - ('P', <card_num>): play card at index <card_num> in hand
         - ('D', <card_num>): discard card at index <card_num> in hand
         - ('H', <player_id>, <hint>): give hint about <hint>'s to player <player_id>
-        - ('+' <card>): draw <card> (for Hanabi clones only)
-        - ('>'): move to next player (for Hanabi clones only)
     '''
     def update(self, command):
         if self.og:

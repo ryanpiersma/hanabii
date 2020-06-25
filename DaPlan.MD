@@ -164,3 +164,9 @@ Ryan: Fix messaging bug, maybe try generating garbage messages to send to client
       Refactor join_phase to allow players to join on a rolling basis, gather player names that will be needed for the Game object
 
 Tahj: Update shuffling so that random seed is passed to hanabi client games. Sending which cards are drawn will now not be necessary anymore.
+----------------------------------------------------------------------------------------------------------------------------
+6/25/20: PEER CODING SESSION 1
+Ryan and Tahj did some debugging and convened very intellectually in order to establish messaging conventions using a series of Enums that will
+help to transfer information between the game objects and the networking code. This resulted in "hanabi_constants.py"
+
+Result: Tahj will ensure that these messages become valid game input, Ryan will ensure that user inputs becomes these messages, then we're off to the races...

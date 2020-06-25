@@ -14,7 +14,7 @@ from send_codes import SendCode
 
 threadActivatorList = [] #Populate this w condition variables
 
-sendClientQueue = queue.Queue(0) #TODO: Decide reasonable size for these queues? Will infinite work??
+sendClientQueue = queue.Queue(0) #TODO: Decide reasonable size for these queues? Will infinite work?? I think...
 sendMessageQueue = queue.Queue(0) 
 receiveMessageQueue = queue.Queue(0)
 
@@ -23,13 +23,14 @@ globalLock = threading.Lock() #Any thread can release primitive lock. This means
 gameFinished = False
 
 playerOrder = []
-
-numPlayers = 0
+playerNames = []
 
 sendReceiveToggle = False #control whether you want to send or receive a message to one of the clients
 #True = send, False = receive
 
 def game_manager(num_players, ip_list, port_list):
+    global sendReceiveToggle
+    global gameFinished
     
     print("***Game manager beginning operation***\n")
     playerOrder = list(range(numPlayers)) # right now could have hard coded. but will support more advanced functionality later!
@@ -54,7 +55,7 @@ def game_manager(num_players, ip_list, port_list):
     
     print("***Game will now begin! LETS RUMBLE***\n")
     
-    totalTurnLimit = 5 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
+    totalTurnLimit = 2 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
     turnCounter = 0
     currentPlayer = 0
     roundCounter = 0
@@ -62,7 +63,7 @@ def game_manager(num_players, ip_list, port_list):
     while turnCounter < totalTurnLimit: #gameFinished != True:
         # SEND PHASE
         sendReceiveToggle = True
-        while not sendMessageQueue.empty():
+        while not sendClientQueue.empty():
             client = sendClientQueue.get()
             threadActivatorList[client - 1].notify()
             threadActivatorList[numPlayers].wait()
@@ -78,8 +79,17 @@ def game_manager(num_players, ip_list, port_list):
         threadActivatorList[numPlayers].wait()
 
     print("*** GAME COMPLETE ***")
+    
+    print("Terminating game for the clients")
+    gameFinished = True
+    for i in range(num_players):
+        threadActivatorList[i].notify()
+        sendMessageQueue.put(SendCode.TERMINATE_GAME.value) 
+        threadActivatorList[numPlayers].wait()
         
 def game_player(player_id, player_ip, player_data_port):
+    global sendReceiveToggle
+    global gameFinished
     
     #Immediately make the player wait on its cond var
     threadActivatorList[player_id].acquire()
@@ -98,8 +108,9 @@ def game_player(player_id, player_ip, player_data_port):
     
     #Wait until a message is received, then put it on the receive message queue
     while not gameFinished:
-        
+    
         if sendReceiveToggle:
+            
             print("~~~ SEND PHASE, PLAYER " + str(player_id + 1) + " ~~~")
             print("Sending message to player " + str(player_id + 1))
             if not sendMessageQueue.empty():
@@ -116,21 +127,28 @@ def game_player(player_id, player_ip, player_data_port):
             response = playerDataSocket.recv(4).decode()
             
             if response == SendCode.CLIENT_ACK_MESSAGE.value:
-                playerMessage = playerDataSocket.recv(32)
-                messageTuple = (player_id, playerMessage)
+                playerMessage = playerDataSocket.recv(256)
+                messageTuple = (player_id+1, playerMessage)
                 receiveMessageQueue.put(messageTuple)
+                print(messageTuple)
+                
             print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE\n")
             
         threadActivatorList[numPlayers].notify() #Using n+1 condition variable to reactivate manager
         threadActivatorList[player_id].wait() #Release the lock, wait on assigned condition variable
+        
+    playerDataSocket.send(SendCode.TERMINATE_GAME.value.encode())
+    threadActivatorList[numPlayers].notify()
+    playerDataSocket.close()
+    threadActivatorList[player_id].release()
     
 def establish_data_connection(client_ip, data_port): #Call this fcn thru game_manager??
 
     dataSocket = socket(AF_INET, SOCK_STREAM)
     dataSocket.connect((client_ip, data_port))
     
-    dataSocket.send("Welcome to your data connection".encode())
-
+    dataSocket.send(SendCode.ACTIVATE_DATA_CONNECTION.value.encode())
+    
     return dataSocket
     
 def create_condition_variables(num_players):

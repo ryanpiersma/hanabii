@@ -12,6 +12,7 @@ import sys  # In order to terminate the program
 import random
 import time
    
+playerName = ''
 
 def send_data_port(server_ip, server_port):
 
@@ -67,11 +68,16 @@ def open_data_socket(dataPort):
     serverDataSocket, addr = dataSocket.accept()
     print("Successful data connection created with server")
     
+    fromServer = serverDataSocket.recv(4).decode()
+    if fromServer == SendCode.ACTIVATE_DATA_CONNECTION.value:
+        playerName = input('Hello! Please provide a player name: \n')
+    
     return serverDataSocket
 
 def play_game(socket):
     
-    while True:
+    runGame = True
+    while runGame:
         serverMessage = socket.recv(4).decode()
         
         socket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
@@ -83,6 +89,10 @@ def play_game(socket):
         elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
             clientAction = socket.recv(256).decode()
             print(clientAction)
+            
+        elif serverMessage == SendCode.TERMINATE_GAME.value:
+            print("Game has ended. Hope ya had fun...")
+            runGame = False
 
 
 def get_available_port():
@@ -108,7 +118,7 @@ if __name__ == '__main__':
         server_port = input("Enter server port: ")
     else:
         server_port = sys.argv[1]
-        
+            
     print("Client will connect to server and tell it its data port\n\n")
     dataPort = send_data_port(server_ip, int(server_port))
     

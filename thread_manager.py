@@ -127,7 +127,7 @@ def game_player(player_id, player_ip, player_data_port):
             response = playerDataSocket.recv(4).decode()
             
             if response == SendCode.CLIENT_ACK_MESSAGE.value:
-                playerMessage = playerDataSocket.recv(256)
+                playerMessage = playerDataSocket.recv(256).decode()
                 messageTuple = (player_id+1, playerMessage)
                 receiveMessageQueue.put(messageTuple)
                 print(messageTuple)

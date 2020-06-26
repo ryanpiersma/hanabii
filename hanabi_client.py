@@ -8,6 +8,7 @@ Created on Mon May 11 21:33:05 2020
 # Import socket module
 from socket import *
 from send_codes import SendCode
+from hanabi_constants import *
 import sys  # In order to terminate the program
 import random
 import time
@@ -61,6 +62,8 @@ def send_data_port(server_ip, server_port):
         clientSocket.close()
           
 def open_data_socket(dataPort):
+    global playerName
+    
     dataSocket = socket(AF_INET, SOCK_STREAM)
     dataSocket.bind(('', dataPort))
     dataSocket.listen(1)
@@ -84,7 +87,16 @@ def play_game(socket):
         
         if serverMessage == SendCode.CLIENT_PROMPT_MESSAGE.value:
             sendServer = input('Input your game action: ')
-            socket.send(sendServer.encode())
+            checkMessage = "ERROR"
+            numIterations = 0
+            while checkMessage[0:5] == "ERROR":
+                if numIterations > 0:
+                    print("Please input a correct command. Ask for help with 'help' \n")
+                    sendServer = input('Input your game action: ')
+                checkMessage = translate_message(sendServer)
+                numIterations = numIterations + 1
+            print("Valid command!\n")
+            socket.send(checkMessage.encode())
             
         elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
             clientAction = socket.recv(256).decode()
@@ -107,6 +119,47 @@ def get_available_port():
         portAvailable = testSocket.connect_ex(portLocation)
             
     return portProspect
+
+def translate_message(inString):
+    global playerName
+    
+    commands = [item.value for item in HanabiCommand]
+    numbers = [item.value for item in HanabiNumber]
+    colors = [item.value for item in HanabiColor]
+    positions = [item.value for item in HanabiPosition]
+    
+    commandComponents = inString.split()
+    returnMessage = ''
+
+    if len(commandComponents) == 0:
+        return "ERROR: no input"
+            
+    if commandComponents[0].lower() == "help":
+        print("\nTo activate a game action, use the following syntax: ")
+        print("PLAY:    P <pos>, where <pos> represents the position of the card [1 2 3 4 5]")
+        print("DISCARD: D <pos>, where <pos> represents the postiion of the card [1 2 3 4 5] ")
+        print("HINT:    H <color/num> where <color/num> is a member of [R W Y G B 1 2 3 4 5]")
+        returnMessage = "ERROR: Imagine asking for help"
+        
+    elif len(commandComponents) != 2:
+        returnMessage = "ERROR: A correct comand always has two arguments..."
+    
+    elif commandComponents[0] not in commands:
+        returnMessage = "ERROR: You have not specified an acceptable command"
+    
+    elif commandComponents[0] == HanabiCommand.GIVE_HINT.value:
+        if (commandComponents[1] not in colors) and (commandComponents[1] not in numbers):
+            returnMessage = "ERROR: Hint not specified correctly"
+        else:
+            returnMessage = commandComponents[0] + '$' + playerName + '$' + commandComponents[1] + '$'
+        
+    else: #Discard or play
+        if commandComponents[1] not in positions:
+            returnMessage = "ERROR: Discard or play does not use an acceptable position"
+        else:
+            returnMessage = commandComponents[0] + '$' + commandComponents[1] + '$'
+        
+    return returnMessage
 
 if __name__ == '__main__':
     server_ip = input("Enter server IP (default localhost): ")

@@ -166,7 +166,25 @@ Ryan: Fix messaging bug, maybe try generating garbage messages to send to client
 Tahj: Update shuffling so that random seed is passed to hanabi client games. Sending which cards are drawn will now not be necessary anymore.
 ----------------------------------------------------------------------------------------------------------------------------
 6/25/20: PEER CODING SESSION 1
+
 Ryan and Tahj did some debugging and convened very intellectually in order to establish messaging conventions using a series of Enums that will
 help to transfer information between the game objects and the networking code. This resulted in "hanabi_constants.py"
 
 Result: Tahj will ensure that these messages become valid game input, Ryan will ensure that user inputs becomes these messages, then we're off to the races...
+
+----------------------------------------------------------------------------------------------------------------------------
+6/26/20: PEER CODING SESSION 2
+
+- Ryan wrote code to translate user input into a standardized message format
+- Tahj integrated hanabi_constants into the Game object
+
+"gatekeeper.py" was conceived of and written as a utility for the Game object to use (only server?) with functionalities of formatting a message to a format
+that the Game object can use and the first iteration of a validation function was written to check if the command works with the current game.
+
+Next steps: Adapt Game object (or other utility??) to make use of the queues for messages provided by the thread_manager (server)
+            Include copies of Game object in hanabi_client and thread_manager which will perform above interactions... [HanabiMaster, HanabiClone]
+            
+Mostly peer coding from now on, but:
+    Tahj - Adapt Game to use all enums, fix hinting
+    Ryan - Rewrite join phase to accommodate a non-predefined number of players
+---------------------------------------------------------------------------------------------------------------------------

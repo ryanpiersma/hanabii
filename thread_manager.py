@@ -141,7 +141,7 @@ def game_player(player_id, player_ip, player_data_port):
     threadActivatorList[numPlayers].notify()
     playerDataSocket.close()
     threadActivatorList[player_id].release()
-    
+   
 def establish_data_connection(client_ip, data_port): #Call this fcn thru game_manager??
 
     dataSocket = socket(AF_INET, SOCK_STREAM)

@@ -1,5 +1,6 @@
 import random
 import sys
+from hanabi_constants import *
 
 class Hanabi():
 
@@ -18,9 +19,8 @@ class Hanabi():
         self.turnsRem = -1
         self.isGameOver = False
 
-        self.display = {'R': 0, 'G': 0, 'B': 0, 'Y': 0, 'W': 0}
+        self.display = {color: 0 for color in HanabiColor}
         self.discardPile = []
-        self.colors = self.display.keys()
 
         if seed:
             self.seed = seed
@@ -32,9 +32,9 @@ class Hanabi():
         
         self.og = og
         self.commands = {
-            'P': lambda args : self.play(int(args[0])),
-            'D': lambda args : self.discard(int(args[0])),
-            'H': lambda args : self.giveHint(int(args[0]), args[1])
+            HanabiCommand.PLAY_CARD: lambda args : self.play(int(args[0])),
+            HanabiCommand.DISCARD_CARD: lambda args : self.discard(int(args[0])),
+            HanabiCommand.GIVE_HINT: lambda args : self.giveHint(int(args[0]), args[1])
         }
         
         if self.og:
@@ -45,22 +45,22 @@ class Hanabi():
 
 
     # Deck functions
-    def addToDeck(self, deck, card, number):
-        for _ in range(number):
+    def addToDeck(self, deck, card, copies):
+        for _ in range(copies):
             deck.append(card)
 
 
     def makeDeck(self):
         deck = []
-        for color in self.colors:
-            for i in range(1, 6):
-                if i == 1:
-                    number = 3
-                elif i == 5:
-                    number = 1
+        for color in HanabiColor:
+            for num in HanabiNumber:
+                if num == HanabiNumber.ONE:
+                    copies = 3
+                elif num == HanabiNumber.FIVE:
+                    copies = 1
                 else:
-                    number = 2
-                self.addToDeck(deck, color[0] + str(i), number)
+                    copies = 2
+                self.addToDeck(deck, color.value + num.value, copies)
         random.seed(self.seed)
         random.shuffle(deck)
         return deck
@@ -104,7 +104,7 @@ class Hanabi():
 
 
     def displayGameState(self):
-        print("Here is the current state of the display:\n" + str(self.display))
+        print("Here is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
         print("Here is the discard pile:\n" + str(self.discardPile))
         print("Hints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
         self.displayHands()
@@ -187,6 +187,7 @@ class Hanabi():
 
 
     def parseCommand(self, command):
+        command = command.split("$")
         if command:
             action = command[0]
             if action in self.commands:
@@ -205,9 +206,9 @@ class Hanabi():
     This method takes in a command, updates the state of the Hanabi object, then returns messages to the appropriate players.
 
     Recognized Commands:
-        - ('P', <card_num>): play card at index <card_num> in hand
-        - ('D', <card_num>): discard card at index <card_num> in hand
-        - ('H', <player_id>, <hint>): give hint about <hint>'s to player <player_id>
+        - (HanabiCommand.PLAY_CARD, <card_num>): play card at index <card_num> in hand
+        - (HanabiCommand.DISCARD_CARD, <card_num>): discard card at index <card_num> in hand
+        - (HanabiCommand.GIVE_HINT, <player_id>, <hint>): give hint about <hint>'s to player <player_id>
     '''
     def update(self, command):
         if self.og:
@@ -252,7 +253,7 @@ games = {owner: Hanabi([Player(player.name) for player in ogGame.players], og=Fa
 #     print(game.deck)
 
 while not ogGame.isGameOver:
-    messages = ogGame.update([ch for ch in input()])
+    messages = ogGame.update(input())
     for player in messages:
         for message in messages[player]:
             games[player].update(message)

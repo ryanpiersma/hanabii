@@ -29,11 +29,14 @@ def join_phase():
     joinPort = get_available_port(False)
     
     numIterations = 0
+    
+    #Socket setup
+    joinSocket = socket(AF_INET, SOCK_STREAM)
+    joinSocket.bind(('', joinPort))
+    joinSocket.listen(1)
+        
     while (connectedPlayers != numPlayers):
-        #Socket setup
-        joinSocket = socket(AF_INET, SOCK_STREAM)
-        joinSocket.bind(('', joinPort))
-        joinSocket.listen(1)
+
         
         if numIterations == 0:
             print("Entered join phase successfully on join port " + str(joinPort))

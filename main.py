@@ -1,6 +1,7 @@
 import random
 import sys
 from hanabi_constants import *
+from gatekeeper import *
 
 class Hanabi():
 
@@ -89,7 +90,7 @@ class Hanabi():
             handStr += otherPlayer.name + ": "
 
             if otherPlayer == self.owner:
-                for card in otherPlayer.hand:
+                for card in otherPlayer.hintHand:
                     for component in card:
                         if not component:
                             handStr += "*"
@@ -195,18 +196,19 @@ class Hanabi():
 
 
     def parseCommand(self, command):
-        if command:
+        if validate_command(self, command):
             action = command[0]
             if action in self.commands:
                 if command[1:]:
                     self.commands[action](command[1:])
                 else:
                     self.commands[action]()
-                if self.og:
-                    self.broadcast(command)
+                # if self.og:
+                #     self.broadcast(command)
                 self.nextPlayer()
-            elif self.og:
-                self.notify("Not a valid choice. Please type H, P, or D.", self.currPlayer)
+            return True
+        print("Not a valid action.")
+        return False
 
 
     '''
@@ -218,17 +220,20 @@ class Hanabi():
         - (HanabiCommand.GIVE_HINT, <hint>, <player_id>): give hint about <hint>'s to player <player_id>
     '''
     def update(self, command):
-        if self.og:
-            self.clearMessages()
+        formattedCommand = format_message(command)
+        # if self.og:
+        #     self.clearMessages()
 
+        is_valid = False
         if not self.isGameOver:
-            self.parseCommand(command)
+            is_valid = self.parseCommand(formattedCommand)
             self.isGameOver = self.mistakesRem == 0 or self.turnsRem == 0
         else:
             print("Game over!\nYou scored " + str(sum(self.display.values())) + " points!")
+        return is_valid
         
-        if self.og:
-            return self.messages
+        # if self.og:
+        #     return self.messages
 
 
 
@@ -246,33 +251,33 @@ class Player():
 
 # Testing. Testing. 1, 2, 3.
 
-fred = Player("Fred")
-daphne = Player("Daphne")
-velma = Player("Velma")
-shaggy = Player("Shaggy")
-scooby = Player("Scooby")
+# fred = Player("Fred")
+# daphne = Player("Daphne")
+# velma = Player("Velma")
+# shaggy = Player("Shaggy")
+# scooby = Player("Scooby")
 
-ogGame = Hanabi([fred, daphne, velma, shaggy, scooby])
-games = {owner: Hanabi([Player(player.name) for player in ogGame.players], og=False, owner=owner, seed=ogGame.seed) for owner in ogGame.players}
+# ogGame = Hanabi([fred, daphne, velma, shaggy, scooby])
+# games = {owner: Hanabi([Player(player.name) for player in ogGame.players], og=False, owner=owner, seed=ogGame.seed) for owner in ogGame.players}
 
-# print(ogGame.deck)
-# print()
-# for game in games.values():
-#     print(game.deck)
+# # print(ogGame.deck)
+# # print()
+# # for game in games.values():
+# #     print(game.deck)
 
-testCommands = [
-    (HanabiCommand.PLAY_CARD, HanabiPosition.ONE), 
-    (HanabiCommand.DISCARD_CARD, HanabiPosition.TWO), 
-    (HanabiCommand.GIVE_HINT, HanabiColor.BLUE, 1),
-    (HanabiCommand.GIVE_HINT, HanabiNumber.THREE, 2)
-]
+# testCommands = [
+#     (HanabiCommand.PLAY_CARD, HanabiPosition.ONE), 
+#     (HanabiCommand.DISCARD_CARD, HanabiPosition.TWO), 
+#     (HanabiCommand.GIVE_HINT, HanabiColor.BLUE, 1),
+#     (HanabiCommand.GIVE_HINT, HanabiNumber.THREE, 2)
+# ]
 
-# while not ogGame.isGameOver:
-ogGame.displayGameState()
-for tc in testCommands:
-    messages = ogGame.update(tc)
-    for player in messages:
-        for message in messages[player]:
-            games[player].update(message)
-    games[player].displayGameState()
+# # while not ogGame.isGameOver:
+# ogGame.displayGameState()
+# for tc in testCommands:
+#     messages = ogGame.update(tc)
+#     for player in messages:
+#         for message in messages[player]:
+#             games[player].update(message)
+#     games[player].displayGameState()
     

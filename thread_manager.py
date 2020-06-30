@@ -10,6 +10,7 @@ import threading
 import queue
 from socket import *
 from send_codes import SendCode
+from main import *
 
 
 threadActivatorList = [] #Populate this w condition variables
@@ -20,17 +21,15 @@ receiveMessageQueue = queue.Queue(0)
 
 globalLock = threading.Lock() #Any thread can release primitive lock. This means manager can release the lock when needed??
 
-gameFinished = False
-
 playerOrder = []
-playerNames = []
+gamePlayers = []
+hanabiGame = None
 
 sendReceiveToggle = False #control whether you want to send or receive a message to one of the clients
 #True = send, False = receive
 
 def game_manager(num_players, ip_list, port_list):
-    global sendReceiveToggle
-    global gameFinished
+    global sendReceiveToggle, gamePlayers, hanabiGame
     
     print("***Game manager beginning operation***\n")
     playerOrder = list(range(numPlayers)) # right now could have hard coded. but will support more advanced functionality later!
@@ -39,9 +38,15 @@ def game_manager(num_players, ip_list, port_list):
         newPlayerThread = threading.Thread(target=game_player, args=(i, ip_list[i], port_list[i],))
         print("Spawned player thread " + str(i + 1) + "\n")
         newPlayerThread.start()
-    
+
     print("***Game manager has spawned all player threads***\n")
     
+    print("***Game manager will create the game! ***")
+    for i in range(num_players):
+        gamePlayers.append(Player(str(port_list[i]))) #for prototype just using data port numbers
+
+    hanabiGame = Hanabi(gamePlayers)
+    print("***Game object successfully instantiated***")
     
     print("***Game players will now establish data connections***\n")
     
@@ -55,12 +60,27 @@ def game_manager(num_players, ip_list, port_list):
     
     print("***Game will now begin! LETS RUMBLE***\n")
     
-    totalTurnLimit = 2 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
+    #totalTurnLimit = 2 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
     turnCounter = 0
     currentPlayer = 0
     roundCounter = 0
     
-    while turnCounter < totalTurnLimit: #gameFinished != True:
+    while not hanabiGame.isGameOver: 
+        broadcastCommand = False
+        try:
+            (gamePlayer, gameCommand) = receiveMessageQueue.get() 
+            broadcastCommand = hanabiGame.update(gameCommand)
+        except queue.Empty:
+            hanabiGame.update(None)
+
+        if broadcastCommand:
+            for i in range(num_players):
+                sendClientQueue.put(i)
+                sendMessageQueue.put(gameCommand)
+
+        hanabiGame.displayGameState()
+        
+
         # SEND PHASE
         sendReceiveToggle = True
         while not sendClientQueue.empty():
@@ -81,15 +101,13 @@ def game_manager(num_players, ip_list, port_list):
     print("*** GAME COMPLETE ***")
     
     print("Terminating game for the clients")
-    gameFinished = True
     for i in range(num_players):
         threadActivatorList[i].notify()
         sendMessageQueue.put(SendCode.TERMINATE_GAME.value) 
         threadActivatorList[numPlayers].wait()
         
 def game_player(player_id, player_ip, player_data_port):
-    global sendReceiveToggle
-    global gameFinished
+    global sendReceiveToggle, hanabiGame
     
     #Immediately make the player wait on its cond var
     threadActivatorList[player_id].acquire()
@@ -107,7 +125,7 @@ def game_player(player_id, player_ip, player_data_port):
     threadActivatorList[player_id].wait()
     
     #Wait until a message is received, then put it on the receive message queue
-    while not gameFinished:
+    while not hanabiGame.isGameOver:
     
         if sendReceiveToggle:
             

@@ -55,7 +55,10 @@ def format_message(inMessage):
     else:
         return "ERROR"
     
-def validate_command(command, game):
+def validate_command(game, command):
+    if not command:
+        return False
+
     action = command[0]
     if action == HanabiCommand.GIVE_HINT:
         

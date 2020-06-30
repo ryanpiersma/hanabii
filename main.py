@@ -32,9 +32,9 @@ class Hanabi():
         
         self.og = og
         self.commands = {
-            HanabiCommand.PLAY_CARD: lambda args : self.play(int(args[0])),
-            HanabiCommand.DISCARD_CARD: lambda args : self.discard(int(args[0])),
-            HanabiCommand.GIVE_HINT: lambda args : self.giveHint(int(args[0]), args[1])
+            HanabiCommand.PLAY_CARD: lambda args : self.play(args[0]),
+            HanabiCommand.DISCARD_CARD: lambda args : self.discard(args[0]),
+            HanabiCommand.GIVE_HINT: lambda args : self.giveHint(args[0], args[1])
         }
         
         if self.og:
@@ -60,7 +60,7 @@ class Hanabi():
                     copies = 1
                 else:
                     copies = 2
-                self.addToDeck(deck, color.value + num.value, copies)
+                self.addToDeck(deck, (color, num), copies)
         random.seed(self.seed)
         random.shuffle(deck)
         return deck
@@ -76,15 +76,10 @@ class Hanabi():
             for _ in range(handSize):
                 player.hand.append(self.deck.pop())
 
-    
-    # Messaging functions
-    def notify(self, message, player):
-        self.messages[player].append(message)
-    
 
-    def broadcast(self, message):
-        for player in self.players:
-            self.notify(message, player)
+    # Display functions
+    def displayCard(self, card):
+        return card[0].value + card[1].value
 
 
     def displayHands(self):
@@ -96,7 +91,7 @@ class Hanabi():
                 if otherPlayer == self.owner:
                     handStr += "** "
                 else:
-                    handStr += card + " "
+                    handStr += self.displayCard(card) + " "
 
             handStr += "\n"
 
@@ -105,9 +100,19 @@ class Hanabi():
 
     def displayGameState(self):
         print("Here is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
-        print("Here is the discard pile:\n" + str(self.discardPile))
+        print("Here is the discard pile:\n" +str([self.displayCard(discarded) for discarded in self.discardPile]))
         print("Hints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
         self.displayHands()
+
+    
+    # Messaging functions
+    def notify(self, message, player):
+        self.messages[player].append(message)
+    
+
+    def broadcast(self, message):
+        for player in self.players:
+            self.notify(message, player)
 
 
     def clearMessages(self):
@@ -135,8 +140,8 @@ class Hanabi():
             
 
     def play(self, cardPos):
-        pick = self.currPlayer.hand.pop(cardPos - 1)
-        if int(pick[1]) - 1 == self.display[pick[0]]:
+        pick = self.currPlayer.hand.pop(int(cardPos.value) - 1)
+        if int(pick[1].value) - 1 == self.display[pick[0]]:
             self.display[pick[0]] = int(pick[1])
             if self.display[pick[0]] == 5:
                 self.addHint()
@@ -145,19 +150,19 @@ class Hanabi():
             self.mistakesRem -= 1
         self.draw()
         
-        print(self.currPlayer.name + " played " + pick + ".")
+        print(self.currPlayer.name + " played " + self.displayCard(pick) + ".")
         
 
     def discard(self, cardPos):
-        pick = self.currPlayer.hand.pop(cardPos - 1)
+        pick = self.currPlayer.hand.pop(int(cardPos.value) - 1)
         self.discardPile.append(pick)
         self.addHint()
         self.draw()
         
-        print(self.currPlayer.name + " discarded " + pick + ".")
+        print(self.currPlayer.name + " discarded " + self.displayCard(pick) + ".")
 
 
-    def giveHint(self, recipient_id, hint):
+    def giveHint(self, hint, recipient_id):
         ### No longer needed w/o hintHands
         # hand = recipient.hand
         # for i in range(len(hand)):
@@ -171,7 +176,7 @@ class Hanabi():
 
         self.hints -= 1
         
-        print(self.currPlayer.name + " gave hint to " + self.players[recipient_id - 1].name + " about " + hint + "'s.")
+        print(self.currPlayer.name + " gave hint to " + self.players[recipient_id - 1].name + " about " + hint.value + "'s.")
 
 
     def nextPlayer(self):
@@ -187,7 +192,6 @@ class Hanabi():
 
 
     def parseCommand(self, command):
-        command = command.split("$")
         if command:
             action = command[0]
             if action in self.commands:
@@ -208,7 +212,7 @@ class Hanabi():
     Recognized Commands:
         - (HanabiCommand.PLAY_CARD, <card_num>): play card at index <card_num> in hand
         - (HanabiCommand.DISCARD_CARD, <card_num>): discard card at index <card_num> in hand
-        - (HanabiCommand.GIVE_HINT, <player_id>, <hint>): give hint about <hint>'s to player <player_id>
+        - (HanabiCommand.GIVE_HINT, <hint>, <player_id>): give hint about <hint>'s to player <player_id>
     '''
     def update(self, command):
         if self.og:
@@ -252,9 +256,19 @@ games = {owner: Hanabi([Player(player.name) for player in ogGame.players], og=Fa
 # for game in games.values():
 #     print(game.deck)
 
-while not ogGame.isGameOver:
-    messages = ogGame.update(input())
+testCommands = [
+    (HanabiCommand.PLAY_CARD, HanabiPosition.ONE), 
+    (HanabiCommand.DISCARD_CARD, HanabiPosition.TWO), 
+    (HanabiCommand.GIVE_HINT, HanabiColor.BLUE, 1),
+    (HanabiCommand.GIVE_HINT, HanabiNumber.THREE, 2)
+]
+
+# while not ogGame.isGameOver:
+ogGame.displayGameState()
+for tc in testCommands:
+    messages = ogGame.update(tc)
     for player in messages:
         for message in messages[player]:
             games[player].update(message)
         games[player].displayGameState()
+    

@@ -75,6 +75,7 @@ class Hanabi():
         for player in self.players:
             for _ in range(handSize):
                 player.hand.append(self.deck.pop())
+                player.hintHand.append([None, None])
 
 
     # Display functions
@@ -87,10 +88,16 @@ class Hanabi():
         for otherPlayer in self.players:
             handStr += otherPlayer.name + ": "
 
-            for card in otherPlayer.hand:
-                if otherPlayer == self.owner:
-                    handStr += "** "
-                else:
+            if otherPlayer == self.owner:
+                for card in otherPlayer.hand:
+                    for component in card:
+                        if not component:
+                            handStr += "*"
+                        else:
+                            handStr += component.value
+                    handStr += " "
+            else:
+                for card in otherPlayer.hand:
                     handStr += self.displayCard(card) + " "
 
             handStr += "\n"
@@ -164,19 +171,15 @@ class Hanabi():
 
     def giveHint(self, hint, recipient_id):
         ### No longer needed w/o hintHands
-        # hand = recipient.hand
-        # for i in range(len(hand)):
-        #     card = ""
-        #     for j in range(len(hand[i])):
-        #         if hand[i][j] == hint:
-        #             card += hand[i][j]
-        #         else:
-        #             card += hintHand[i][j]
-        #     hintHand[i] = card
+        recipient = self.players[recipient_id - 1]
+        for i in range(len(recipient.hand)):
+            for j in range(len(recipient.hand[i])):
+                if recipient.hand[i][j] == hint:
+                    recipient.hintHand[i][j] = recipient.hand[i][j]
 
         self.hints -= 1
         
-        print(self.currPlayer.name + " gave hint to " + self.players[recipient_id - 1].name + " about " + hint.value + "'s.")
+        print(self.currPlayer.name + " gave hint to " + recipient.name + " about " + hint.value + "'s.")
 
 
     def nextPlayer(self):
@@ -236,6 +239,7 @@ class Player():
     def __init__(self, name):
         self.name = name
         self.hand = []
+        self.hintHand = []
 
 
 
@@ -270,5 +274,5 @@ for tc in testCommands:
     for player in messages:
         for message in messages[player]:
             games[player].update(message)
-        games[player].displayGameState()
+    games[player].displayGameState()
     

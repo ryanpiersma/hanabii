@@ -188,3 +188,21 @@ Mostly peer coding from now on, but:
     Tahj - Adapt Game to use all enums, fix hinting
     Ryan - Rewrite join phase to accommodate a non-predefined number of players
 ---------------------------------------------------------------------------------------------------------------------------
+6/30/20: PEER CODING SESSION 3 - INTEGRATION W/ SERVER CODE
+
+- Tahj integrated 'hanabi_constants' Enum more into the code, and re-fixed hinting
+- Ryan began work on the not-yet-functional flexible join-phase (join_phase_flex())
+
+In 'main.py', 'gatekeeper' was integrated in order to be able to receive commands from the receiving messageQueue of the
+thread manager.
+
+In 'thread_manager.py', the Hanabi Game was integrated in order to be able to take received messages and input them as
+commands into the Hanabi game, as well as placing these commands back on the send queues in order to broadcast to eventual
+client copies of the game.
+
+Unfortunately, testing was inconclusive as to whether any of this actually worked due to bugs in the thread manager sending code.
+Ryan's bad, lol
+
+Ryan: Fix bugs such that the integration with the thread manager is successful!
+Tahj: Think about ASCII/any other ideas
+---------------------------------------------------------------------------------------------------------------------------

@@ -88,6 +88,9 @@ def game_manager(num_players, ip_list, port_list):
             client = sendClientQueue.get_nowait()
             threadActivatorList[client].notify()
             threadActivatorList[numPlayers].wait()
+            
+        if hanabiGame.isGameOver: #Game could end after send phase
+            break
         
         # RECEIVE PHASE
         sendReceiveToggle = False
@@ -105,7 +108,6 @@ def game_manager(num_players, ip_list, port_list):
     for i in range(num_players):
         threadActivatorList[i].notify()
         sendMessageQueue.put(SendCode.TERMINATE_GAME.value) 
-        threadActivatorList[numPlayers].wait()
         
 def game_player(player_id, player_ip, player_data_port):
     global sendReceiveToggle, hanabiGame

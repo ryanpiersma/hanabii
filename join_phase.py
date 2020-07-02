@@ -21,6 +21,82 @@ client_ips = []
 dataPorts = []
 sendString = ''
 
+def join_phase_flex():
+    startGame = False
+    
+    clientSockets = []
+    connectedPlayers = 0
+    joinPort = get_available_port(False)
+    
+    numIterations = 0
+    firstPlayer = True #Instead of determining the number of players,
+    #The first player will maintain a socket that controls when the game starts
+    
+    #Socket setup
+    joinSocket = socket(AF_INET, SOCK_STREAM)
+    joinSocket.bind(('', joinPort))
+    joinSocket.listen(1)
+        
+    while not startGame:
+
+        if numIterations == 0:
+            print("Entered join phase successfully on join port " + str(joinPort))
+        else:
+            print("Waiting for the game to start...")
+        
+        connectionSocket, addr = joinSocket.accept()
+        if firstPlayer:
+            controlSocket = connectionSocket
+            connectionSocket.send(SendCode.INDICATE_PLAYER_ONE.value.encode())
+        else:
+            connectionSocket.send(SendCode.INDICATE_JOINING_GAME.value.encode())
+        
+        print("Connection made from address: " + str(addr[0]))
+        client_ips.append(str(addr[0]))
+        
+        connectedPlayers = connectedPlayers + 1
+        numIterations = numIterations + 1
+                    
+        connectionSocket.settimeout(5) #Wait for 5 seconds on each iteration to give players opportunity to make decision
+        clientSockets.append(connectionSocket)
+        
+        socketUpdateMessage = ''
+        for i in range(len(clientSockets)):
+            try:
+                socketUpdateMessage = clientSockets[i].recv(8)
+                if socketUpdateMessage == SendCode.INDICATE_DROP_GAME and clientSockets[i] != controlSocket:
+                    clientSockets.remove(socket)
+                    client_ips.remove(client_ips[i])
+                    connectedPlayers = connectedPlayers - 1
+                elif socketUpdateMessage == SendCode.INDICATE_START_GAME and clientSockets[i] == controlSocket:
+                    startGame = True
+                    break
+            except socket.TimeoutError:
+               print() #do nothing, just catch the timeouts
+               
+    for socket in clientSockets:
+        socket.send(SendCode.START_GAME.value.encode())
+            
+    for socket in clientSockets:
+        socket.send(SendCode.SERVER_REQUEST_DATA_PORT.value.encode())
+        print("Waiting for data port from PLAYER " + str(connectedPlayers))
+    
+        dataPort = int(socket.recv(8).decode())
+        if (dataPort >= 1024 and dataPort < 65536):
+            print("\nPLAYER " + str(connectedPlayers) + " HAS SENT DATA PORT \n")
+            dataPorts.append(dataPort)
+            socket.send(SendCode.SERVER_RECEIVED_DATA_PORT.value.encode())
+                
+    print("All players have been sent a port for data connection!\n")
+        
+    print("Clients have the following IPs: ")
+    print(client_ips)
+    
+    print("Will create data connections on following ports for those respective clients: ")
+    print(dataPorts)
+    return (client_ips, dataPorts)
+
+
 # Open a connection on the Hanabi port to add players + an associated thread
 def join_phase():
     connectedPlayers = 0
@@ -126,6 +202,7 @@ def get_num_players(numSocket):
     return numPlayers
 
 if __name__ == "__main__":
-    join_phase()
+    join_phase() #Activate the join phase with a predefined number of players
+    #join_phase_flex() #Activate the join phase wihtout a predefined number of players
     
 

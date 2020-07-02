@@ -14,7 +14,51 @@ import random
 import time
    
 playerName = ''
+validInputResponses = ["C", "J"]
+dropGame = "D"
+from threading import Timer
 
+def send_data_port_flex(server_ip, server_port):
+        # Create server socket
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    clientSocket.connect((server_ip, server_port))
+    print("Successful connection to server made")
+
+    try:
+        print("Waiting to receive server code...")
+        serverMessage = clientSocket.recv(4).decode()
+    
+        to_server = input('Welcome to Hanabii! Are you creating or joining a game?\n (Press "C" to create and "J" to join')
+        while to_server not in validInputResponses:
+            to_server = input("Your input wasn't valid! Are you creating or joining a game?\n (Press \"C\" to create and \"J\" to join")
+    
+        print('Thanks for joining! Press "D" to drop the game')
+        serverStart = ''
+        handleDrop = ''
+        while serverStart != SendCode.START_GAME.value:
+            serverStart = clientSocket.recv(4).decode()
+    
+        serverMessage = clientSocket.recv(4).decode()
+        while (serverMessage != SendCode.SERVER_REQUEST_DATA_PORT.value):
+                serverMessage = clientSocket.recv(4).decode()
+                
+        serverMessage = ''
+        numIterations = 0
+        while (serverMessage != SendCode.SERVER_RECEIVED_DATA_PORT.value):
+            if (numIterations != 0):
+                print("Server failed to receive data port! Retrying...")
+            dataPort = get_available_port()
+            clientSocket.send(str(dataPort).encode())  
+            print("Data port sent to server!")
+            serverMessage = clientSocket.recv(4).decode()
+                
+        clientSocket.send(SendCode.CLIENT_CLOSE_SOCKET.value.encode())
+        clientSocket.close()
+        return dataPort
+
+    except EOFError:
+        clientSocket.close()
+    
 def send_data_port(server_ip, server_port):
 
     # Create server socket
@@ -102,10 +146,13 @@ def play_game(socket):
             clientAction = socket.recv(256).decode()
             print(clientAction)
             
+        elif serverMessage == SendCode.DO_NOTHING.value:
+            pass
+            
         elif serverMessage == SendCode.TERMINATE_GAME.value:
             print("Game has ended. Hope ya had fun...")
             runGame = False
-
+            
 
 def get_available_port():
     
@@ -173,7 +220,8 @@ if __name__ == '__main__':
         server_port = sys.argv[1]
             
     print("Client will connect to server and tell it its data port\n\n")
-    dataPort = send_data_port(server_ip, int(server_port))
+    dataPort = send_data_port(server_ip, int(server_port)) #Use when server uses 'join_phase()'
+    #dataPort = send_data_port_flex(server_ip, int(server_port)) #Use when server uses 'join_phase_flex()'
     
     print("Client will open socket for its data port and alert when connected to server")
     serverSocket = open_data_socket(dataPort)

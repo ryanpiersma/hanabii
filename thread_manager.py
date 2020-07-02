@@ -68,10 +68,11 @@ def game_manager(num_players, ip_list, port_list):
     while not hanabiGame.isGameOver: 
         broadcastCommand = False
         try:
-            (gamePlayer, gameCommand) = receiveMessageQueue.get() 
+            (gamePlayer, gameCommand) = receiveMessageQueue.get_nowait() 
             broadcastCommand = hanabiGame.update(gameCommand)
-        except queue.Empty:
-            hanabiGame.update(None)
+        except Exception:
+            print("Receive queue was empty")
+            hanabiGame.update('')
 
         if broadcastCommand:
             for i in range(num_players):
@@ -85,7 +86,7 @@ def game_manager(num_players, ip_list, port_list):
         sendReceiveToggle = True
         while not sendClientQueue.empty():
             client = sendClientQueue.get()
-            threadActivatorList[client - 1].notify()
+            threadActivatorList[client].notify()
             threadActivatorList[numPlayers].wait()
         
         # RECEIVE PHASE
@@ -134,8 +135,10 @@ def game_player(player_id, player_ip, player_data_port):
             if not sendMessageQueue.empty():
                 playerDataSocket.send(SendCode.CLIENT_RECV_MESSAGE.value.encode())
                 response = playerDataSocket.recv(4).decode()
-                if reponse == SendCode.CLIENT_ACK_MESSAGE.value:
+                if response == SendCode.CLIENT_ACK_MESSAGE.value:
                     playerDataSocket.send(sendMessageQueue.get().encode())
+            else:
+                playerDataSocket.send(SendCode.DO_NOTHING.value.encode())
             
         else:
             print("~~~ RECEIVE PHASE, PLAYER " + str(player_id + 1) + " ~~~")

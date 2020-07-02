@@ -8,7 +8,11 @@ Created on Wed May 20 15:26:23 2020
 from enum import Enum
 class SendCode(Enum):
     INDICATE_PLAYER_ONE = "1"
+    ASK_FOR_GAME_ID = "I"
     INDICATE_JOINING_GAME = "2"
+    INDICATE_DROP_GAME = "D"
+    INDICATE_START_GAME = "E"
+    START_GAME = "S"
     INDICATE_INVALID_PLAYERNUM = "3"
     INDICATE_VALID_PLAYERNUM = "4"
     SERVER_RECEIVED_DATA_PORT = "5"
@@ -20,3 +24,4 @@ class SendCode(Enum):
     CLIENT_PROMPT_MESSAGE = "A"
     ACTIVATE_DATA_CONNECTION = "B"
     TERMINATE_GAME = "C"
+    DO_NOTHING = "D"

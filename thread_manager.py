@@ -68,9 +68,9 @@ def game_manager(num_players, ip_list, port_list):
     while not hanabiGame.isGameOver: 
         broadcastCommand = False
         try:
-            (gamePlayer, gameCommand) = receiveMessageQueue.get_nowait() 
+            (gamePlayer, gameCommand) = receiveMessageQueue.get(timeout=2.0)
             broadcastCommand = hanabiGame.update(gameCommand)
-        except Exception:
+        except queue.Empty:
             print("Receive queue was empty")
             hanabiGame.update('')
 
@@ -85,7 +85,7 @@ def game_manager(num_players, ip_list, port_list):
         # SEND PHASE
         sendReceiveToggle = True
         while not sendClientQueue.empty():
-            client = sendClientQueue.get()
+            client = sendClientQueue.get_nowait()
             threadActivatorList[client].notify()
             threadActivatorList[numPlayers].wait()
         

@@ -150,7 +150,7 @@ class Hanabi():
     def play(self, cardPos):
         pick = self.currPlayer.hand.pop(int(cardPos.value) - 1)
         if int(pick[1].value) - 1 == self.display[pick[0]]:
-            self.display[pick[0]] = int(pick[1])
+            self.display[pick[0]] = int(pick[1].value)
             if self.display[pick[0]] == 5:
                 self.addHint()
         else:

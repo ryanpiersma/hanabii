@@ -45,7 +45,7 @@ def game_manager(num_players, ip_list, port_list):
     for i in range(num_players):
         gamePlayers.append(Player(str(port_list[i]))) #for prototype just using data port numbers
 
-    hanabiGame = Hanabi(gamePlayers)
+    hanabiGame = Hanabi(gamePlayers, seed=0) #hard coded as 0 for now
     print("***Game object successfully instantiated***")
     
     print("***Game players will now establish data connections***\n")

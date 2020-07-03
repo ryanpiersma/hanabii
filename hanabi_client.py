@@ -12,6 +12,7 @@ from hanabi_constants import *
 import sys  # In order to terminate the program
 import random
 import time
+from main import *
    
 playerName = ''
 validInputResponses = ["C", "J"]
@@ -122,6 +123,9 @@ def open_data_socket(dataPort):
     return serverDataSocket
 
 def play_game(socket):
+    player1 = Player(playerName + "1")
+    player2 = Player(playerName + "2")
+    game = Hanabi([player1, player2], owner=player1, seed=0)
     
     runGame = True
     while runGame:
@@ -144,7 +148,9 @@ def play_game(socket):
             
         elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
             clientAction = socket.recv(256).decode()
-            print(clientAction)
+            game.displayGameState()
+            game.update(clientAction)
+            
             
         elif serverMessage == SendCode.DO_NOTHING.value:
             pass

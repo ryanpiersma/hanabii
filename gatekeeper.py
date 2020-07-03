@@ -11,7 +11,7 @@ def format_message(inMessage):
     
     commandComponents = inMessage.split('$')
     
-    if len(commandComponents) != 2 and len(commandComponents) != 3:
+    if (len(commandComponents) != 2) and (len(commandComponents) != 3):
         return "ERROR"
     
     prospectiveCommand = commandComponents[0]
@@ -65,9 +65,14 @@ def validate_command(game, command):
         # Check if hints remaining
         if game.hints <= 0:
             return False
-        
+               
         # Check valid recipient
-        if command[2] == game.currPlayerIndex or command[2] < 0 or command[2] >= game.numPlayers:
+        if (command[2] == game.currPlayerIndex + 1) or (command[2] < 1) or (command[2] > game.numPlayers):
+            return False
+        
+    elif action == HanabiCommand.DISCARD_CARD:
+        
+        if game.hints == MAX_HINTS:
             return False
         
     return True

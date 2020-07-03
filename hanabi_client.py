@@ -139,7 +139,7 @@ def play_game(socket):
                     sendServer = input('Input your game action: ')
                 checkMessage = translate_message(sendServer)
                 numIterations = numIterations + 1
-            print("Valid command!\n")
+            print("Sending command to server...\n")
             socket.send(checkMessage.encode())
             
         elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
@@ -185,27 +185,31 @@ def translate_message(inString):
         print("\nTo activate a game action, use the following syntax: ")
         print("PLAY:    P <pos>, where <pos> represents the position of the card [1 2 3 4 5]")
         print("DISCARD: D <pos>, where <pos> represents the postiion of the card [1 2 3 4 5] ")
-        print("HINT:    H <color/num> where <color/num> is a member of [R W Y G B 1 2 3 4 5]")
+        print("HINT:    H <color/num> <playernum> where <color/num> is a member of [R W Y G B 1 2 3 4 5]")
+        print("                                   and <playernum> is the number of another player")
         returnMessage = "ERROR: Imagine asking for help"
         
-    elif len(commandComponents) != 2:
-        returnMessage = "ERROR: A correct comand always has two arguments..."
+    elif len(commandComponents) != 2 and not commandComponents[0] == HanabiCommand.GIVE_HINT.value:
+        returnMessage = "ERROR: The command has the wrong number of arguments..."
     
     elif commandComponents[0] not in commands:
         returnMessage = "ERROR: You have not specified an acceptable command"
     
     elif commandComponents[0] == HanabiCommand.GIVE_HINT.value:
-        if (commandComponents[1] not in colors) and (commandComponents[1] not in numbers):
+        if len(commandComponents) != 3:
+            returnMessage = "ERROR: A hint takes 3 total arguments"
+        elif (commandComponents[1] not in colors) and (commandComponents[1] not in numbers):
             returnMessage = "ERROR: Hint not specified correctly"
         else:
-            returnMessage = commandComponents[0] + '$' + playerName + '$' + commandComponents[1] + '$'
+            returnMessage = commandComponents[0] + '$' + commandComponents[1] + '$' + commandComponents[2]
         
     else: #Discard or play
         if commandComponents[1] not in positions:
             returnMessage = "ERROR: Discard or play does not use an acceptable position"
         else:
-            returnMessage = commandComponents[0] + '$' + commandComponents[1] + '$'
-        
+            returnMessage = commandComponents[0] + '$' + commandComponents[1]
+    
+    print(returnMessage)
     return returnMessage
 
 if __name__ == '__main__':

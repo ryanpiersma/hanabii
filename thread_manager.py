@@ -70,14 +70,19 @@ def game_manager(num_players, ip_list, port_list):
         try:
             (gamePlayer, gameCommand) = receiveMessageQueue.get(timeout=2.0)
             broadcastCommand = hanabiGame.update(gameCommand)
+            
+            if broadcastCommand:
+                for i in range(num_players):
+                    sendClientQueue.put(i)
+                    sendMessageQueue.put(gameCommand)
+                    
+            else:
+                errorMessage = 'ERROR! Your command was incorrect...'
+                sendClientQueue.put(currentPlayer)
+                sendMessageQueue.put(errorMessage)
+            
         except queue.Empty:
             print("Receive queue was empty")
-            hanabiGame.update('')
-
-        if broadcastCommand:
-            for i in range(num_players):
-                sendClientQueue.put(i)
-                sendMessageQueue.put(gameCommand)
 
         hanabiGame.displayGameState()
         
@@ -94,12 +99,17 @@ def game_manager(num_players, ip_list, port_list):
         
         # RECEIVE PHASE
         sendReceiveToggle = False
-        if currentPlayer == 0:
-            roundCounter = roundCounter + 1
-            print("^^^BEGIN ROUND " + str(roundCounter) + " ^^^")
+
+        
+        if broadcastCommand:
+            if currentPlayer == 0:
+                roundCounter = roundCounter + 1
+                print("^^^BEGIN ROUND " + str(roundCounter) + " ^^^")
+            
+            currentPlayer = (currentPlayer + 1) % num_players
+            turnCounter = turnCounter + 1
+        
         threadActivatorList[playerOrder[currentPlayer]].notify()
-        currentPlayer = (currentPlayer + 1) % num_players
-        turnCounter = turnCounter + 1
         threadActivatorList[numPlayers].wait()
 
     print("*** GAME COMPLETE ***")

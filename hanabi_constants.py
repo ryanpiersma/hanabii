@@ -26,4 +26,6 @@ class HanabiPosition(Enum):
     FOUR = "4"
     FIVE = "5"
 
+MAX_HINTS = 8
+
 #Let's delimit with dollar signs lol

@@ -80,7 +80,7 @@ def send_data_port(server_ip, server_port):
                     to_server = input("Sorry, enter a number of players between 2 and 5!\n")
                 clientSocket.send(to_server.encode())
                 print('Thank you!')
-                serverMessage = clientSocket.recv(4).decode()
+                serverMessage = clientSocket.recv(1).decode()
                 numIterations = numIterations + 1
         else:
             print('Welcome to your game of Hanabii!\n')
@@ -224,7 +224,7 @@ if __name__ == '__main__':
     if server_ip == '':
         server_ip = "127.0.0.1"
         
-    if sys.argv[1] == '':
+    if len(sys.argv) < 2:
         server_port = input("Enter server port: ")
     else:
         server_port = sys.argv[1]

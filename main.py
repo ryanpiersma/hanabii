@@ -1,5 +1,4 @@
 import random
-import sys
 from hanabi_constants import *
 from gatekeeper import *
 
@@ -23,11 +22,7 @@ class Hanabi():
         self.display = {color: 0 for color in HanabiColor}
         self.discardPile = []
 
-        if seed:
-            self.seed = seed
-        else:
-            self.seed = random.randrange(sys.maxsize)
-
+        self.seed = seed
         self.deck = self.makeDeck()
         self.dealHands()
         

@@ -139,14 +139,17 @@ def join_phase():
         connectedPlayers = connectedPlayers + 1
         numIterations = numIterations + 1
         
-        connectionSocket.send(SendCode.SERVER_REQUEST_DATA_PORT.value.encode())
-        print("Waiting for data port from PLAYER " + str(connectedPlayers))
+        while True:
+            connectionSocket.send(SendCode.SERVER_REQUEST_DATA_PORT.value.encode())
+            print("Waiting for data port from PLAYER " + str(connectedPlayers))
         
-        dataPort = int(connectionSocket.recv(8).decode())
-        if (dataPort >= 1024 and dataPort < 65536):
-            print("\nPLAYER " + str(connectedPlayers) + " HAS SENT DATA PORT \n")
-            dataPorts.append(dataPort)
-            connectionSocket.send(SendCode.SERVER_RECEIVED_DATA_PORT.value.encode())
+            dataPort = int(connectionSocket.recv(8).decode())
+            if (dataPort >= 1024 and dataPort < 65536):
+                break
+            
+        print("\nPLAYER " + str(connectedPlayers) + " HAS SENT DATA PORT \n")
+        dataPorts.append(dataPort)
+        connectionSocket.send(SendCode.SERVER_RECEIVED_DATA_PORT.value.encode())
             
         closeSignal = connectionSocket.recv(4).decode()
         if closeSignal == SendCode.CLIENT_CLOSE_SOCKET.value:

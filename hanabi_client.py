@@ -122,13 +122,24 @@ def open_data_socket(dataPort):
     
     return serverDataSocket
 
-def play_game(socket):
+def play_game(socket, ownerNumber):
+    
     player1 = Player(playerName + "1")
     player2 = Player(playerName + "2")
-    game = Hanabi([player1, player2], owner=player1, seed=1)
+    
+    if ownerNumber == "1":
+        gameOwner = player1
+    elif ownerNumber == "2":
+        gameOwner = player2
+    else:
+        gameOwner = player1
+    
+    game = Hanabi([player1, player2], owner=gameOwner, seed=1)
     
     runGame = True
-    while runGame:
+    game.displayGameState()
+    
+    while runGame:    
         serverMessage = socket.recv(1).decode()
         
         socket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
@@ -154,11 +165,12 @@ def play_game(socket):
                 socket.send(checkMessage.encode())
             
         elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
-            #game.displayGameState()
             clientAction = socket.recv(5).decode()
             socket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
-            print(clientAction)
-            #game.update(clientAction)
+            #print(clientAction)
+            isAction = game.update(clientAction)
+            if isAction:
+                game.displayGameState()
             
             
         elif serverMessage == SendCode.DO_NOTHING.value:
@@ -245,5 +257,8 @@ if __name__ == '__main__':
     print("Client will open socket for its data port and alert when connected to server")
     serverSocket = open_data_socket(dataPort)
     
+    #TEMPORARY query for player number
+    playerNum = input("Which player is this?")
+    
     print("A socket has been successfully created. Let's play HANABII")
-    play_game(serverSocket)
+    play_game(serverSocket, playerNum)

@@ -206,3 +206,21 @@ Ryan's bad, lol
 Ryan: Fix bugs such that the integration with the thread manager is successful!
 Tahj: Think about ASCII/any other ideas
 ---------------------------------------------------------------------------------------------------------------------------
+
+TO REMEMBER from debugging:
+Hints broken while clients use the name that was never given to the server
+Fixed 7/3/20, preliminary server/client integration with game performed, but many bugs uncovered
+
+---------------------------------------------------------------------------------------------------------------------------
+
+7/10/20 - Debugging session, fixed a couple minor bugs and uncovered major bug
+7/11/20 - Debugging session 2, Ryan managed to fix major bug beforehand, Tahj and Ryan then were able to successfully
+play the game with a few bugs via localhost...
+
+For next week:
+Tahj - Bug with hint hands - When removing a card from a hand, also remove from "hint hand"!
+Ryan - Add more info to join phase so ugly hard coding can be deleted, try making sure inter-machine join phase works consistently
+by making join phase robust
+
+
+

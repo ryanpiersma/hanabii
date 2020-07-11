@@ -45,7 +45,7 @@ def game_manager(num_players, ip_list, port_list):
     for i in range(num_players):
         gamePlayers.append(Player(str(port_list[i]))) #for prototype just using data port numbers
 
-    hanabiGame = Hanabi(gamePlayers, seed=0) #hard coded as 0 for now
+    hanabiGame = Hanabi(gamePlayers, seed=1) #hard coded as 1 for now
     print("***Game object successfully instantiated***")
     
     print("***Game players will now establish data connections***\n")
@@ -60,26 +60,31 @@ def game_manager(num_players, ip_list, port_list):
     
     print("***Game will now begin! LETS RUMBLE***\n")
     
-    #totalTurnLimit = 2 * numPlayers #This will not exist in final version (?) . Just for demo of basic functionality
     turnCounter = 0
     currentPlayer = 0
     roundCounter = 0
     
+    iterations = 0
     while not hanabiGame.isGameOver: 
         broadcastCommand = False
         try:
-            (gamePlayer, gameCommand) = receiveMessageQueue.get(timeout=2.0)
-            broadcastCommand = hanabiGame.update(gameCommand)
+            if iterations != 0:
+                (gamePlayer, gameCommand) = receiveMessageQueue.get()
+                broadcastCommand = hanabiGame.update(gameCommand)
+            iterations = iterations + 1
             
             if broadcastCommand:
                 for i in range(num_players):
                     sendClientQueue.put(i)
                     sendMessageQueue.put(gameCommand)
                     
-            else:
+            elif iterations > 1:
                 errorMessage = 'ERROR! Your command was incorrect...'
                 sendClientQueue.put(currentPlayer)
                 sendMessageQueue.put(errorMessage)
+                
+            else:
+                pass
             
         except queue.Empty:
             print("Receive queue was empty")
@@ -146,9 +151,20 @@ def game_player(player_id, player_ip, player_data_port):
             print("Sending message to player " + str(player_id + 1))
             if not sendMessageQueue.empty():
                 playerDataSocket.send(SendCode.CLIENT_RECV_MESSAGE.value.encode())
-                response = playerDataSocket.recv(4).decode()
-                if response == SendCode.CLIENT_ACK_MESSAGE.value:
-                    playerDataSocket.send(sendMessageQueue.get().encode())
+                response = playerDataSocket.recv(1).decode()
+                
+                while response != SendCode.CLIENT_ACK_MESSAGE.value:
+                    playerDataSocket.send(SendCode.CLIENT_RECV_MESSAGE.encode())
+                    response = playerDataSocket.recv(1).decode()
+                    
+                sendData = sendMessageQueue.get()  
+                playerDataSocket.send(sendData.encode())
+                    
+                ack = playerDataSocket.recv(1).decode()
+                while ack != SendCode.CLIENT_ACK_MESSAGE.value:
+                    playerDataSocket.send(sendData.encode())
+                    ack = playerDataSocket.recv(1).decode() #Using for time sync between client and server
+                    
             else:
                 playerDataSocket.send(SendCode.DO_NOTHING.value.encode())
             
@@ -157,13 +173,22 @@ def game_player(player_id, player_ip, player_data_port):
             print("Server waiting on a message from player " + str(player_id+1) + "...")
             
             playerDataSocket.send(SendCode.CLIENT_PROMPT_MESSAGE.value.encode())
-            response = playerDataSocket.recv(4).decode()
+            response = playerDataSocket.recv(1).decode()
             
-            if response == SendCode.CLIENT_ACK_MESSAGE.value:
-                playerMessage = playerDataSocket.recv(256).decode()
-                messageTuple = (player_id+1, playerMessage)
-                receiveMessageQueue.put(messageTuple)
-                print(messageTuple)
+            while response != SendCode.CLIENT_ACK_MESSAGE.value:
+                playerDataSocket.send(SendCode.CLIENT_PROMPT_MESSAGE.value.encode())
+                response = playerDataSocket.recv(1).decode()
+                
+            playerMessage = playerDataSocket.recv(5).decode()
+            while playerMessage[0] == '0':
+                playerMessage = playerDataSocket.recv(5).decode()
+                
+            playerDataSocket.send(SendCode.SERVER_ACK_MESSAGE.value.encode())
+                
+            messageTuple = (player_id+1, playerMessage)
+            receiveMessageQueue.put(messageTuple)
+            
+            print(messageTuple)
                 
             print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE\n")
             

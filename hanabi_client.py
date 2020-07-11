@@ -80,7 +80,7 @@ def send_data_port(server_ip, server_port):
                     to_server = input("Sorry, enter a number of players between 2 and 5!\n")
                 clientSocket.send(to_server.encode())
                 print('Thank you!')
-                serverMessage = clientSocket.recv(4).decode()
+                serverMessage = clientSocket.recv(32).decode()
                 numIterations = numIterations + 1
         else:
             print('Welcome to your game of Hanabii!\n')
@@ -125,31 +125,40 @@ def open_data_socket(dataPort):
 def play_game(socket):
     player1 = Player(playerName + "1")
     player2 = Player(playerName + "2")
-    game = Hanabi([player1, player2], owner=player1, seed=0)
+    game = Hanabi([player1, player2], owner=player1, seed=1)
     
     runGame = True
     while runGame:
-        serverMessage = socket.recv(4).decode()
+        serverMessage = socket.recv(1).decode()
         
         socket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
         
         if serverMessage == SendCode.CLIENT_PROMPT_MESSAGE.value:
             sendServer = input('Input your game action: ')
+            
             checkMessage = "ERROR"
             numIterations = 0
+            
             while checkMessage[0:5] == "ERROR":
                 if numIterations > 0:
                     print("Please input a correct command. Ask for help with 'help' \n")
                     sendServer = input('Input your game action: ')
                 checkMessage = translate_message(sendServer)
                 numIterations = numIterations + 1
+                
             print("Sending command to server...\n")
             socket.send(checkMessage.encode())
             
+            ack = socket.recv(1).decode()
+            while ack != SendCode.SERVER_ACK_MESSAGE.value:
+                socket.send(checkMessage.encode())
+            
         elif serverMessage == SendCode.CLIENT_RECV_MESSAGE.value:
-            clientAction = socket.recv(256).decode()
-            game.displayGameState()
-            game.update(clientAction)
+            #game.displayGameState()
+            clientAction = socket.recv(5).decode()
+            socket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
+            print(clientAction)
+            #game.update(clientAction)
             
             
         elif serverMessage == SendCode.DO_NOTHING.value:
@@ -215,7 +224,7 @@ def translate_message(inString):
         else:
             returnMessage = commandComponents[0] + '$' + commandComponents[1]
     
-    print(returnMessage)
+    #print(returnMessage)
     return returnMessage
 
 if __name__ == '__main__':

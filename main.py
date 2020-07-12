@@ -98,11 +98,6 @@ class Hanabi():
 
 
     # Deck functions
-    def addToDeck(self, deck, card, copies):
-        for _ in range(copies):
-            deck.append(card)
-
-
     def makeDeck(self):
         deck = []
         for color in HanabiColor:
@@ -113,7 +108,9 @@ class Hanabi():
                     copies = 1
                 else:
                     copies = 2
-                self.addToDeck(deck, Card(color, num), copies)
+                    
+                for _ in range(copies):
+                    deck.append(Card(color, num))
         random.seed(self.seed)
         random.shuffle(deck)
         return deck

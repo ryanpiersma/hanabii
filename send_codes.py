@@ -26,3 +26,7 @@ class SendCode(Enum):
     ACTIVATE_DATA_CONNECTION = "B"
     TERMINATE_GAME = "C"
     DO_NOTHING = "D"
+    ASK_FOR_NAME = "N"
+    INDICATE_PLAYER_NUM = "P"
+    GET_NUM_PLAYERS = "Z"
+    PLAYER_INFO_REQUEST = "Q"

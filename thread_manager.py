@@ -11,6 +11,7 @@ import queue
 from socket import *
 from send_codes import SendCode
 from main import *
+import time
 
 
 threadActivatorList = [] #Populate this w condition variables
@@ -23,18 +24,19 @@ globalLock = threading.Lock() #Any thread can release primitive lock. This means
 
 playerOrder = []
 gamePlayers = []
+numPlayers = 0
 hanabiGame = None
 
 sendReceiveToggle = False #control whether you want to send or receive a message to one of the clients
 #True = send, False = receive
 
-def game_manager(num_players, ip_list, port_list):
-    global sendReceiveToggle, gamePlayers, hanabiGame
+def game_manager(ip_list, port_list, player_names):
+    global sendReceiveToggle, gamePlayers, hanabiGame, numPlayers
     
     print("***Game manager beginning operation***\n")
     playerOrder = list(range(numPlayers)) # right now could have hard coded. but will support more advanced functionality later!
     
-    for i in range(num_players):
+    for i in range(numPlayers):
         newPlayerThread = threading.Thread(target=game_player, args=(i, ip_list[i], port_list[i],))
         print("Spawned player thread " + str(i + 1) + "\n")
         newPlayerThread.start()
@@ -42,8 +44,8 @@ def game_manager(num_players, ip_list, port_list):
     print("***Game manager has spawned all player threads***\n")
     
     print("***Game manager will create the game! ***")
-    for i in range(num_players):
-        gamePlayers.append(Player(str(port_list[i]))) #for prototype just using data port numbers
+    for i in range(numPlayers):
+        gamePlayers.append(Player(player_names[i])) 
 
     hanabiGame = Hanabi(gamePlayers, seed=1) #hard coded as 1 for now
     print("***Game object successfully instantiated***")
@@ -51,7 +53,7 @@ def game_manager(num_players, ip_list, port_list):
     print("***Game players will now establish data connections***\n")
     
     threadActivatorList[numPlayers].acquire()
-    for i in range(num_players):
+    for i in range(numPlayers):
         threadActivatorList[i].notify()
         threadActivatorList[numPlayers].wait()
     
@@ -74,7 +76,7 @@ def game_manager(num_players, ip_list, port_list):
             iterations = iterations + 1
             
             if broadcastCommand:
-                for i in range(num_players):
+                for i in range(numPlayers):
                     sendClientQueue.put(i)
                     sendMessageQueue.put(gameCommand)
                     
@@ -104,14 +106,13 @@ def game_manager(num_players, ip_list, port_list):
         
         # RECEIVE PHASE
         sendReceiveToggle = False
-
         
         if broadcastCommand:
             if currentPlayer == 0:
                 roundCounter = roundCounter + 1
                 print("^^^BEGIN ROUND " + str(roundCounter) + " ^^^")
             
-            currentPlayer = (currentPlayer + 1) % num_players
+            currentPlayer = (currentPlayer + 1) % numPlayers
             turnCounter = turnCounter + 1
         
         threadActivatorList[playerOrder[currentPlayer]].notify()
@@ -120,12 +121,12 @@ def game_manager(num_players, ip_list, port_list):
     print("*** GAME COMPLETE ***")
     
     print("Terminating game for the clients")
-    for i in range(num_players):
+    for i in range(numPlayers):
         threadActivatorList[i].notify()
         sendMessageQueue.put(SendCode.TERMINATE_GAME.value) 
         
 def game_player(player_id, player_ip, player_data_port):
-    global sendReceiveToggle, hanabiGame
+    global sendReceiveToggle, hanabiGame, numPlayers
     
     #Immediately make the player wait on its cond var
     threadActivatorList[player_id].acquire()
@@ -137,6 +138,9 @@ def game_player(player_id, player_ip, player_data_port):
     
     if playerDataSocket is None:
         print("Thread for player " + str(player_id+1) + " has unsuccessfully reached client data port :(")
+        
+    #Exchange relevant game info with each client!
+    send_player_info(playerDataSocket)
         
     threadActivatorList[numPlayers].notify()
     print("Thread for player " + str(player_id+1) + " has successfully set up data connection!")
@@ -200,23 +204,45 @@ def game_player(player_id, player_ip, player_data_port):
     playerDataSocket.close()
     threadActivatorList[player_id].release()
    
-def establish_data_connection(client_ip, data_port): #Call this fcn thru game_manager??
+def establish_data_connection(client_ip, data_port): 
 
     dataSocket = socket(AF_INET, SOCK_STREAM)
-    dataSocket.connect((client_ip, data_port))
-    
+    dataSocket.connect((client_ip, data_port))   
     dataSocket.send(SendCode.ACTIVATE_DATA_CONNECTION.value.encode())
     
     return dataSocket
+
+def send_player_info(dataSocket):
     
-def create_condition_variables(num_players):
-    for i in range(num_players + 1):
+    clientRequest = dataSocket.recv(1).decode()
+    while clientRequest != SendCode.GET_NUM_PLAYERS.value:
+        clientRequest = dataSocket.recv(1).decode()
+        
+    dataSocket.send(str(numPlayers).encode())
+    
+    clientAck = dataSocket.recv(1).decode()
+    while clientAck != SendCode.CLIENT_ACK_MESSAGE.value:
+        clientAck = dataSocket.recv(1).decode()
+        
+    for i in range(numPlayers):
+        request = dataSocket.recv(1).decode()
+        while request != SendCode.PLAYER_INFO_REQUEST.value:
+            request = dataSocket.recv(1).decode()
+            
+        dataSocket.send(player_names[i].encode())
+        
+        clientAck = dataSocket.recv(1).decode()
+        while clientAck != SendCode.CLIENT_ACK_MESSAGE.value:
+            clientAck = dataSocket.recv(1).decode()
+    
+def create_condition_variables():
+    for i in range(numPlayers + 1):
         #Create condition variables for each player in the game + 1
         threadActivatorList.append(threading.Condition(globalLock))
   
 if __name__ == "__main__":
-    (client_ips, data_ports) = jp.join_phase()
+    (client_ips, data_ports, player_names) = jp.join_phase()
     numPlayers = len(client_ips)
-    create_condition_variables(numPlayers)
-    managerThread = threading.Thread(target=game_manager, args=(numPlayers, client_ips, data_ports))
+    create_condition_variables()
+    managerThread = threading.Thread(target=game_manager, args=(client_ips, data_ports, player_names))
     managerThread.run()

@@ -15,6 +15,10 @@ import time
 from main import *
    
 playerName = ''
+playerNum = 0
+playerNames = []
+players = []
+numPlayers = 0
 validInputResponses = ["C", "J"]
 dropGame = "D"
 from threading import Timer
@@ -61,7 +65,7 @@ def send_data_port_flex(server_ip, server_port):
         clientSocket.close()
     
 def send_data_port(server_ip, server_port):
-
+    global playerNum
     # Create server socket
     clientSocket = socket(AF_INET, SOCK_STREAM)
     clientSocket.connect((server_ip, server_port))
@@ -69,7 +73,7 @@ def send_data_port(server_ip, server_port):
 
     try:
         print("Waiting to receive server code...")
-        serverMessage = clientSocket.recv(4).decode()
+        serverMessage = clientSocket.recv(1).decode()
     
         if serverMessage == SendCode.INDICATE_PLAYER_ONE.value:
             to_server = input('Welcome to Hanabii! How many players for your game?\n')
@@ -85,29 +89,60 @@ def send_data_port(server_ip, server_port):
         else:
             print('Welcome to your game of Hanabii!\n')
              
-        serverMessage = clientSocket.recv(4).decode()
+        serverMessage = clientSocket.recv(1).decode()
+        while (serverMessage != SendCode.ASK_FOR_NAME.value):
+            serverMessage = clientSocket.recv(1).decode()
+            
+        playerName = input("Please give us a name! ")
+        while len(playerName) > 32:
+            playerName = input("Limit 32 characters... ")
+            
+        clientSocket.send(playerName.encode())
+        
+        serverMessage = clientSocket.recv(1).decode()
+        while (serverMessage != SendCode.INDICATE_PLAYER_NUM.value):
+            serverMessage = clientSocket.recv(1).decode()
+               
+        clientSocket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
+        num = False
+        while not num:
+            try:
+                playerNum = int(clientSocket.recv(4).decode())
+                num = True
+            except ValueError:
+                pass
+            
+        if playerNum >= 1 and playerNum <= 5:
+            clientSocket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
+            print("YOU ARE PLAYER " + str(playerNum))
+        
+        serverMessage = clientSocket.recv(1).decode()
         while (serverMessage != SendCode.SERVER_REQUEST_DATA_PORT.value):
-                serverMessage = clientSocket.recv(4).decode()
+                serverMessage = clientSocket.recv(1).decode()
                 
         serverMessage = ''
         numIterations = 0
+        clientSocket.settimeout(15.0) #15 sec timeout on getting message from server
+        
         while (serverMessage != SendCode.SERVER_RECEIVED_DATA_PORT.value):
             if (numIterations != 0):
                 print("Server failed to receive data port! Retrying...")
             dataPort = get_available_port()
             clientSocket.send(str(dataPort).encode())  
             print("Data port sent to server!")
-            serverMessage = clientSocket.recv(4).decode()
+            try:
+                serverMessage = clientSocket.recv(1).decode()
+            except clientSocket.timeout:
+                pass
                 
         clientSocket.send(SendCode.CLIENT_CLOSE_SOCKET.value.encode())
         clientSocket.close()
         return dataPort
 
-    except EOFError:
+    except ConnectionResetError:
         clientSocket.close()
           
 def open_data_socket(dataPort):
-    global playerName
     
     dataSocket = socket(AF_INET, SOCK_STREAM)
     dataSocket.bind(('', dataPort))
@@ -116,25 +151,43 @@ def open_data_socket(dataPort):
     serverDataSocket, addr = dataSocket.accept()
     print("Successful data connection created with server")
     
-    fromServer = serverDataSocket.recv(4).decode()
-    if fromServer == SendCode.ACTIVATE_DATA_CONNECTION.value:
-        playerName = input('Hello! Please provide a player name: \n')
+    fromServer = serverDataSocket.recv(1).decode()
+    while fromServer != SendCode.ACTIVATE_DATA_CONNECTION.value:
+       fromServer = serverDataSocket.recv(1).decode()
     
     return serverDataSocket
 
-def play_game(socket, ownerNumber):
+def get_player_info(serverSocket): #Get necessary info on other players
+    global numPlayers, playerNames
     
-    player1 = Player(playerName + "1")
-    player2 = Player(playerName + "2")
+    serverSocket.send(SendCode.GET_NUM_PLAYERS.value.encode())
+
+    response = serverSocket.recv(4).decode()
     
-    if ownerNumber == "1":
-        gameOwner = player1
-    elif ownerNumber == "2":
-        gameOwner = player2
-    else:
-        gameOwner = player1
+    while int(response) > 5 or int(response) < 2:
+        serverSocket.send(SendCode.GET_NUM_PLAYERS.value.encode())
+        response = serverSocket.recv(4).decode()
+        
+    numPlayers = int(response)
+    serverSocket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
     
-    game = Hanabi([player1, player2], owner=gameOwner, seed=1)
+    for i in range(numPlayers):
+        serverSocket.send(SendCode.PLAYER_INFO_REQUEST.value.encode())
+        name = serverSocket.recv(32).decode()
+        while name[0] == '0':
+            name = serverSocket.recv(32).decode()
+        serverSocket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
+        playerNames.append(name)
+
+def play_game(socket):
+    global playerNum, playerNames, players, numPlayers
+    
+    for i in range(numPlayers):
+        players.append(Player(playerNames[i]))
+    
+    gameOwner = players[playerNum - 1]
+    
+    game = Hanabi(players, owner=gameOwner, seed=1)
     
     runGame = True
     game.displayGameState()
@@ -195,7 +248,6 @@ def get_available_port():
     return portProspect
 
 def translate_message(inString):
-    global playerName
     
     commands = [item.value for item in HanabiCommand]
     numbers = [item.value for item in HanabiNumber]
@@ -257,8 +309,8 @@ if __name__ == '__main__':
     print("Client will open socket for its data port and alert when connected to server")
     serverSocket = open_data_socket(dataPort)
     
-    #TEMPORARY query for player number
-    playerNum = input("Which player is this?")
+    print("Receiving game info from server... ")
+    get_player_info(serverSocket)
     
     print("A socket has been successfully created. Let's play HANABII")
-    play_game(serverSocket, playerNum)
+    play_game(serverSocket)

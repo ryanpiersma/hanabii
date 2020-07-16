@@ -222,5 +222,12 @@ Tahj - Bug with hint hands - When removing a card from a hand, also remove from 
 Ryan - Add more info to join phase so ugly hard coding can be deleted, try making sure inter-machine join phase works consistently
 by making join phase robust
 
+-------------------------------------------------------------------------------------------------------------------------
+NOTE FOR FUTURE PROJECT DEVELOPMENT: Would probably be cool to build a "game manager module" that could spawn multiple instances
+of a potentially object-oriented version of the thread manager
+
+- Game terminates before printing final game layout
+- Let's mess with weird shellcodes to change terminal text color (and font??)
+
 
 

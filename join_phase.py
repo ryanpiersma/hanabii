@@ -19,6 +19,7 @@ from send_codes import SendCode
 joinPort = 0
 client_ips = []
 dataPorts = []
+playerNames = []
 sendString = ''
 
 def join_phase_flex():
@@ -113,7 +114,6 @@ def join_phase():
         
     while (connectedPlayers != numPlayers):
 
-        
         if numIterations == 0:
             print("Entered join phase successfully on join port " + str(joinPort))
         else:
@@ -130,28 +130,49 @@ def join_phase():
             firstPlayer = False
         else:
             connectionSocket.send(SendCode.INDICATE_JOINING_GAME.value.encode())
-        
-        ''' Code from when the server sent the data port rather than the client '''
-        #dataPort = get_available_port(True)
-        #sendString = str(dataPort)
-        #connectionSocket.send(sendString.encode())
-        
+            
+        #Get player names
+        connectionSocket.send(SendCode.ASK_FOR_NAME.value.encode())
+        playerName = connectionSocket.recv(32).decode()
+        playerNames.append(playerName)
+                
         connectedPlayers = connectedPlayers + 1
         numIterations = numIterations + 1
         
-        while True:
-            connectionSocket.send(SendCode.SERVER_REQUEST_DATA_PORT.value.encode())
-            print("Waiting for data port from PLAYER " + str(connectedPlayers))
+        connectionSocket.send(SendCode.INDICATE_PLAYER_NUM.value.encode())
         
-            dataPort = int(connectionSocket.recv(8).decode())
-            if (dataPort >= 1024 and dataPort < 65536):
-                break
+        response = connectionSocket.recv(1).decode()
+        while response != SendCode.CLIENT_ACK_MESSAGE.value:
+            connectionSocket.send(SendCode.INDICATE_PLAYER_NUM.value.encode())
+            response = connectionSocket.recv(1).decode()
+            
+        connectionSocket.send(str(connectedPlayers).encode())
+        
+        response = connectionSocket.recv(1).decode()
+        while response != SendCode.CLIENT_ACK_MESSAGE.value:
+            connectionSocket.send(str(connectedPlayers).encode())
+            response = connectionSocket.recv(1).decode()
+        
+        
+        connectionSocket.settimeout(15.0) #Implement socket timeouts in the join phase
+        
+        while True:
+            try:
+                connectionSocket.send(SendCode.SERVER_REQUEST_DATA_PORT.value.encode())
+                print("Waiting for data port from PLAYER " + str(connectedPlayers))
+        
+                dataPort = int(connectionSocket.recv(5).decode())
+                if (dataPort >= 1024 and dataPort < 65536):
+                    break
+                
+            except connectionSocket.timeout:
+                print("Socket timed out getting data port, trying again!")
             
         print("\nPLAYER " + str(connectedPlayers) + " HAS SENT DATA PORT \n")
         dataPorts.append(dataPort)
         connectionSocket.send(SendCode.SERVER_RECEIVED_DATA_PORT.value.encode())
             
-        closeSignal = connectionSocket.recv(4).decode()
+        closeSignal = connectionSocket.recv(1).decode()
         if closeSignal == SendCode.CLIENT_CLOSE_SOCKET.value:
             connectionSocket.close()
         
@@ -162,7 +183,11 @@ def join_phase():
     
     print("Will create data connections on following ports for those respective clients: ")
     print(dataPorts)
-    return (client_ips, dataPorts)
+    
+    print("These are the player names: ")
+    print(playerNames)
+    
+    return (client_ips, dataPorts, playerNames)
     
 
 #Return port on which the client can then connect    

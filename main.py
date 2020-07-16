@@ -1,6 +1,60 @@
 import random
 from hanabi_constants import *
 from gatekeeper import *
+import sys
+
+
+class Card():
+
+    FULL = 0
+    HINTS = 1
+    HIDDEN = 2
+
+
+    def __init__(self, color, number):
+        self.color = color
+        self.number = number
+        self.colorHinted = False
+        self.numberHinted = False
+
+
+    def display(self, mode=FULL):
+        if mode == Card.HIDDEN:
+            return "**"
+        elif mode == Card.HINTS:
+            cardStr = ""
+            if self.colorHinted:
+                cardStr += self.color.value
+            else:
+                cardStr += "*"
+
+            if self.numberHinted:
+                cardStr += self.number.value
+            else:
+                cardStr += "*"
+            return cardStr
+        else:
+            return self.color.value + self.number.value
+
+
+
+
+class Player():
+
+
+    def __init__(self, name):
+        self.name = name
+        self.hand = []
+
+
+    def displayHand(self, mode=Card.FULL):
+        handStr = ""
+        for card in self.hand:
+            handStr += card.display(mode) + " "
+        return handStr 
+
+
+
 
 class Hanabi():
 
@@ -22,7 +76,10 @@ class Hanabi():
         self.display = {color: 0 for color in HanabiColor}
         self.discardPile = []
 
-        self.seed = seed
+        if not seed:
+            self.seed = random.randint(0, sys.maxsize)
+        else:
+            self.seed = seed
         self.deck = self.makeDeck()
         self.dealHands()
         
@@ -41,11 +98,6 @@ class Hanabi():
 
 
     # Deck functions
-    def addToDeck(self, deck, card, copies):
-        for _ in range(copies):
-            deck.append(card)
-
-
     def makeDeck(self):
         deck = []
         for color in HanabiColor:
@@ -56,7 +108,9 @@ class Hanabi():
                     copies = 1
                 else:
                     copies = 2
-                self.addToDeck(deck, (color, num), copies)
+                    
+                for _ in range(copies):
+                    deck.append(Card(color, num))
         random.seed(self.seed)
         random.shuffle(deck)
         return deck
@@ -71,41 +125,28 @@ class Hanabi():
         for player in self.players:
             for _ in range(handSize):
                 player.hand.append(self.deck.pop())
-                player.hintHand.append([None, None])
 
 
     # Display functions
-    def displayCard(self, card):
-        return card[0].value + card[1].value
-
 
     def displayHands(self):
         handStr = "What you see:\n"
-        for otherPlayer in self.players:
-            handStr += otherPlayer.name + ": "
-
-            if otherPlayer == self.owner:
-                for card in otherPlayer.hintHand:
-                    for component in card:
-                        if not component:
-                            handStr += "*"
-                        else:
-                            handStr += component.value
-                    handStr += " "
+        for player in self.players:
+            handStr += player.name + ": "
+            if player == self.owner:
+                handStr += player.displayHand(Card.HINTS)
             else:
-                for card in otherPlayer.hand:
-                    handStr += self.displayCard(card) + " "
-
+                handStr += player.displayHand()
             handStr += "\n"
 
-        print(handStr)
+        return handStr
 
 
     def displayGameState(self):
-        print("Here is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
-        print("Here is the discard pile:\n" +str([self.displayCard(discarded) for discarded in self.discardPile]))
-        print("Hints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
-        self.displayHands()
+        print("\nHere is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
+        print("\nHere is the discard pile:\n" +str([discarded.display() for discarded in self.discardPile]))
+        print("\nHints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
+        print("\n" + self.displayHands())
 
     
     # Messaging functions
@@ -144,16 +185,16 @@ class Hanabi():
 
     def play(self, cardPos):
         pick = self.currPlayer.hand.pop(int(cardPos.value) - 1)
-        if int(pick[1].value) - 1 == self.display[pick[0]]:
-            self.display[pick[0]] = int(pick[1].value)
-            if self.display[pick[0]] == 5:
+        if int(pick.number.value) - 1 == self.display[pick.color]:
+            self.display[pick.color] = int(pick.number.value)
+            if self.display[pick.color] == 5:
                 self.addHint()
         else:
             self.discardPile.append(pick)
             self.mistakesRem -= 1
         self.draw()
         
-        print(self.currPlayer.name + " played " + self.displayCard(pick) + ".")
+        print(self.currPlayer.name + " played " + pick.display() + ".")
         
 
     def discard(self, cardPos):
@@ -162,17 +203,17 @@ class Hanabi():
         self.addHint()
         self.draw()
         
-        print(self.currPlayer.name + " discarded " + self.displayCard(pick) + ".")
+        print(self.currPlayer.name + " discarded " + pick.display() + ".")
 
 
     def giveHint(self, hint, recipient_id):
         ### No longer needed w/o hintHands
         recipient = self.players[recipient_id - 1]
-        for i in range(len(recipient.hand)):
-            for j in range(len(recipient.hand[i])):
-                if recipient.hand[i][j] == hint:
-                    recipient.hintHand[i][j] = recipient.hand[i][j]
-
+        for card in recipient.hand:
+            if card.color == hint:
+                card.colorHinted = True
+            if card.number == hint:
+                card.numberHinted = True
         self.hints -= 1
         
         print(self.currPlayer.name + " gave hint to " + recipient.name + " about " + hint.value + "'s.")
@@ -233,17 +274,6 @@ class Hanabi():
 
 
 
-class Player():
-
-
-    def __init__(self, name):
-        self.name = name
-        self.hand = []
-        self.hintHand = []
-
-
-
-
 # Testing. Testing. 1, 2, 3.
 
 # fred = Player("Fred")
@@ -255,24 +285,12 @@ class Player():
 # ogGame = Hanabi([fred, daphne, velma, shaggy, scooby])
 # games = {owner: Hanabi([Player(player.name) for player in ogGame.players], og=False, owner=owner, seed=ogGame.seed) for owner in ogGame.players}
 
-# # print(ogGame.deck)
-# # print()
-# # for game in games.values():
-# #     print(game.deck)
-
-# testCommands = [
-#     (HanabiCommand.PLAY_CARD, HanabiPosition.ONE), 
-#     (HanabiCommand.DISCARD_CARD, HanabiPosition.TWO), 
-#     (HanabiCommand.GIVE_HINT, HanabiColor.BLUE, 1),
-#     (HanabiCommand.GIVE_HINT, HanabiNumber.THREE, 2)
-# ]
+# testCommands = ["P$1", "D$2", "H$B$1", "H$3$2"]
 
 # # while not ogGame.isGameOver:
 # ogGame.displayGameState()
 # for tc in testCommands:
-#     messages = ogGame.update(tc)
-#     for player in messages:
-#         for message in messages[player]:
-#             games[player].update(message)
-#     games[player].displayGameState()
-    
+#     ogGame.update(tc)
+#     for player in ogGame.players:
+#         games[player].update(tc)
+#     ogGame.displayGameState()

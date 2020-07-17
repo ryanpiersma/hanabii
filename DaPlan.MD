@@ -230,4 +230,13 @@ of a potentially object-oriented version of the thread manager
 - Let's mess with weird shellcodes to change terminal text color (and font??)
 
 
+------------------------------------------------------------------------------------------------------------------------------
 
+7/17/20
+
+Ryan & Tahj: Did what we said we would do last week
+NOTE: GAME SUCCESSFULLY PLAYED BETWEEN RYAN AND TAHJ LOCAL MACHINES-
+SERVER RUN ON RYAN DUKE VM! Also, if the code doesn't work for someone,
+have them reconfigure their firewall :)
+
+Peer programming for graphics and formatting in the near future

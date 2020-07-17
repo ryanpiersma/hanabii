@@ -2,7 +2,7 @@ import random
 from hanabi_constants import *
 from gatekeeper import *
 import sys
-
+import colorama
 
 class Card():
 
@@ -143,6 +143,7 @@ class Hanabi():
 
 
     def displayGameState(self):
+        print(colorama.Fore.CYAN)
         print("\nHere is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
         print("\nHere is the discard pile:\n" +str([discarded.display() for discarded in self.discardPile]))
         print("\nHints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))

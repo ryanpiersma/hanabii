@@ -26,12 +26,13 @@ playerOrder = []
 gamePlayers = []
 numPlayers = 0
 hanabiGame = None
+gameSeed = 0
 
 sendReceiveToggle = False #control whether you want to send or receive a message to one of the clients
 #True = send, False = receive
 
 def game_manager(ip_list, port_list, player_names):
-    global sendReceiveToggle, gamePlayers, hanabiGame, numPlayers
+    global sendReceiveToggle, gamePlayers, hanabiGame, numPlayers, gameSeed
     
     print("***Game manager beginning operation***\n")
     playerOrder = list(range(numPlayers)) # right now could have hard coded. but will support more advanced functionality later!
@@ -47,7 +48,8 @@ def game_manager(ip_list, port_list, player_names):
     for i in range(numPlayers):
         gamePlayers.append(Player(player_names[i])) 
 
-    hanabiGame = Hanabi(gamePlayers, seed=1) #hard coded as 1 for now
+    gameSeed = random.randint(1, 1000000)
+    hanabiGame = Hanabi(gamePlayers, seed=gameSeed) 
     print("***Game object successfully instantiated***")
     
     print("***Game players will now establish data connections***\n")
@@ -222,6 +224,17 @@ def send_player_info(dataSocket):
     
     clientAck = dataSocket.recv(1).decode()
     while clientAck != SendCode.CLIENT_ACK_MESSAGE.value:
+        clientAck = dataSocket.recv(1).decode()
+    
+    clientAck = dataSocket.recv(1).decode()
+    while clientAck != SendCode.REQUEST_SEED.value:
+        clientAck = dataSocket.recv(1).decode()
+        
+    dataSocket.send(str(gameSeed).encode())
+    
+    clientAck = dataSocket.recv(1).decode()
+    while clientAck != SendCode.CLIENT_ACK_MESSAGE.value:
+        dataSocket.send(str(gameSeed).encode())
         clientAck = dataSocket.recv(1).decode()
         
     for i in range(numPlayers):

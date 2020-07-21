@@ -21,6 +21,7 @@ players = []
 numPlayers = 0
 validInputResponses = ["C", "J"]
 dropGame = "D"
+gameSeed = 0
 from threading import Timer
 
 def send_data_port_flex(server_ip, server_port):
@@ -158,7 +159,7 @@ def open_data_socket(dataPort):
     return serverDataSocket
 
 def get_player_info(serverSocket): #Get necessary info on other players
-    global numPlayers, playerNames
+    global numPlayers, playerNames, gameSeed
     
     serverSocket.send(SendCode.GET_NUM_PLAYERS.value.encode())
 
@@ -171,6 +172,15 @@ def get_player_info(serverSocket): #Get necessary info on other players
     numPlayers = int(response)
     serverSocket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
     
+    serverSocket.send(SendCode.REQUEST_SEED.value.encode())
+    prospectSeed = serverSocket.recv(6).decode() #Or however many bytes you need for the seed...
+    while int(prospectSeed) < 1 or int(prospectSeed) >= 1000000:
+        serverSocket.send(SendCode.REQUEST_SEED.value.encode())
+        prospectSeed = serverSocket.recv(6).decode #Or however many bytes you need for the seed...
+        
+    gameSeed = int(prospectSeed)    
+    serverSocket.send(SendCode.CLIENT_ACK_MESSAGE.value.encode())
+    
     for i in range(numPlayers):
         serverSocket.send(SendCode.PLAYER_INFO_REQUEST.value.encode())
         name = serverSocket.recv(32).decode()
@@ -180,14 +190,14 @@ def get_player_info(serverSocket): #Get necessary info on other players
         playerNames.append(name)
 
 def play_game(socket):
-    global playerNum, playerNames, players, numPlayers
+    global playerNum, playerNames, players, numPlayers, gameSeed
     
     for i in range(numPlayers):
         players.append(Player(playerNames[i]))
     
     gameOwner = players[playerNum - 1]
     
-    game = Hanabi(players, owner=gameOwner, seed=1)
+    game = Hanabi(players, owner=gameOwner, seed=gameSeed)
     
     runGame = True
     game.displayGameState()

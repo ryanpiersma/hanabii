@@ -30,3 +30,4 @@ class SendCode(Enum):
     INDICATE_PLAYER_NUM = "P"
     GET_NUM_PLAYERS = "Z"
     PLAYER_INFO_REQUEST = "Q"
+    REQUEST_SEED = "Y"

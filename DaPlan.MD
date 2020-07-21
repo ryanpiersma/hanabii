@@ -240,3 +240,13 @@ SERVER RUN ON RYAN DUKE VM! Also, if the code doesn't work for someone,
 have them reconfigure their firewall :)
 
 Peer programming for graphics and formatting in the near future
+
+---------------------------------------------------------------------------
+
+7/21/20
+
+Peer programming: Refactored existing code to create display classes; learned how to correctly use the colorama package
+
+Ideas:
+  - Command line argument (TextMode vs. VisualMode)
+  - Configurable options for display (e.g. show discard or nah)

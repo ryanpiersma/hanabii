@@ -133,7 +133,7 @@ class Hanabi():
             self.mistakesRem -= 1
         self.draw()
         
-        print(self.currPlayer.name + " played " + pick.display() + ".")
+        print(self.currPlayer.name + " played " + pick.color.value + pick.number.value + ".")
         
 
     def discard(self, cardPos):
@@ -142,7 +142,7 @@ class Hanabi():
         self.addHint()
         self.draw()
         
-        print(self.currPlayer.name + " discarded " + pick.display() + ".")
+        print(self.currPlayer.name + " discarded " + pick.color.value + pick.number.value + ".")
 
 
     def giveHint(self, hint, recipient_id):

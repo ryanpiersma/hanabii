@@ -2,14 +2,8 @@ import random
 from hanabi_constants import *
 from gatekeeper import *
 import sys
-import colorama
 
 class Card():
-
-    FULL = 0
-    HINTS = 1
-    HIDDEN = 2
-
 
     def __init__(self, color, number):
         self.color = color
@@ -17,43 +11,11 @@ class Card():
         self.colorHinted = False
         self.numberHinted = False
 
-
-    def display(self, mode=FULL):
-        if mode == Card.HIDDEN:
-            return "**"
-        elif mode == Card.HINTS:
-            cardStr = ""
-            if self.colorHinted:
-                cardStr += self.color.value
-            else:
-                cardStr += "*"
-
-            if self.numberHinted:
-                cardStr += self.number.value
-            else:
-                cardStr += "*"
-            return cardStr
-        else:
-            return self.color.value + self.number.value
-
-
-
-
 class Player():
-
 
     def __init__(self, name):
         self.name = name
         self.hand = []
-
-
-    def displayHand(self, mode=Card.FULL):
-        handStr = ""
-        for card in self.hand:
-            handStr += card.display(mode) + " "
-        return handStr 
-
-
 
 
 class Hanabi():
@@ -125,32 +87,6 @@ class Hanabi():
         for player in self.players:
             for _ in range(handSize):
                 player.hand.append(self.deck.pop())
-
-
-    # Display functions
-
-    def displayHands(self):
-        handStr = "What you see:\n"
-        for player in self.players:
-            handStr += player.name + ": "
-            if player == self.owner:
-                handStr += player.displayHand(Card.HINTS)
-            else:
-                handStr += player.displayHand()
-            handStr += "\n"
-
-        return handStr
-
-
-    def displayGameState(self):
-        colorama.init()
-        print(colorama.Fore.CYAN)
-        print("\nHere is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
-        print("\nHere is the discard pile:\n" +str([discarded.display() for discarded in self.discardPile]))
-        print("\nHints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
-        print("\n" + self.displayHands())
-        print(colorama.Fore.WHITE)
-
     
     # Messaging functions
     def notify(self, message, player):

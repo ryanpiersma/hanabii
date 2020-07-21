@@ -8,6 +8,7 @@ Created on Wed May 20 17:17:34 2020
 import join_phase as jp
 import threading
 import queue
+from hanabi_display import HanabiDisplay
 from socket import *
 from send_codes import SendCode
 from main import *
@@ -16,7 +17,7 @@ import time
 
 threadActivatorList = [] #Populate this w condition variables
 
-sendClientQueue = queue.Queue(0) #TODO: Decide reasonable size for these queues? Will infinite work?? I think...
+sendClientQueue = queue.Queue(0) 
 sendMessageQueue = queue.Queue(0) 
 receiveMessageQueue = queue.Queue(0)
 
@@ -50,6 +51,7 @@ def game_manager(ip_list, port_list, player_names):
 
     gameSeed = random.randint(1, 1000000)
     hanabiGame = Hanabi(gamePlayers, seed=gameSeed) 
+    hanabiDisplay = HanabiDisplay(hanabiGame)
     print("***Game object successfully instantiated***")
     
     print("***Game players will now establish data connections***\n")
@@ -93,7 +95,7 @@ def game_manager(ip_list, port_list, player_names):
         except queue.Empty:
             print("Receive queue was empty")
 
-        hanabiGame.displayGameState()
+        hanabiDisplay.displayGameState()
         
 
         # SEND PHASE

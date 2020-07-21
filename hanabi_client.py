@@ -12,6 +12,7 @@ from hanabi_constants import *
 import sys  # In order to terminate the program
 import random
 import time
+from hanabi_display import HanabiDisplay
 from main import *
    
 playerName = ''
@@ -198,9 +199,10 @@ def play_game(socket):
     gameOwner = players[playerNum - 1]
     
     game = Hanabi(players, owner=gameOwner, seed=gameSeed)
+    gameDisplay = HanabiDisplay(game)
     
     runGame = True
-    game.displayGameState()
+    gameDisplay.displayGameState()
     
     while runGame:    
         serverMessage = socket.recv(1).decode()

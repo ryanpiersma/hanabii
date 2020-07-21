@@ -143,11 +143,13 @@ class Hanabi():
 
 
     def displayGameState(self):
+        colorama.init()
         print(colorama.Fore.CYAN)
         print("\nHere is the current state of the display:\n" + str({color.value: self.display[color] for color in self.display}))
         print("\nHere is the discard pile:\n" +str([discarded.display() for discarded in self.discardPile]))
         print("\nHints: " + str(self.hints) + "\tMistakes remaining: " + str(self.mistakesRem))
         print("\n" + self.displayHands())
+        print(colorama.Fore.WHITE)
 
     
     # Messaging functions

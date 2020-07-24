@@ -250,3 +250,17 @@ Peer programming: Refactored existing code to create display classes; learned ho
 Ideas:
   - Command line argument (TextMode vs. VisualMode)
   - Configurable options for display (e.g. show discard or nah)
+
+
+--------------------------------------------------------------------------
+
+7/24/20
+
+Peer programming: Added color to TextMode (mostly works)
+
+Next time:
+  1. Make discard pile display correctly
+  2. Center text in terminal
+  3. Make game actions and server messages a different color
+  4. Increase font size potentially
+  5. Add box around game state display (maybe next next time)

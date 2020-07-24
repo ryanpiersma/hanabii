@@ -10,7 +10,7 @@ class HanabiColor(Enum):
     GREEN = "G"
     BLUE = "B"
     YELLOW = "Y"
-    WHITE = "W"
+    MAGENTA = "M"
 
 class HanabiNumber(Enum):
     ONE = "1"

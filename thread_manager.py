@@ -71,6 +71,8 @@ def game_manager(ip_list, port_list, player_names):
     roundCounter = 0
     
     iterations = 0
+    finalIteration = False
+    
     while not hanabiGame.isGameOver: 
         broadcastCommand = False
         try:
@@ -97,7 +99,6 @@ def game_manager(ip_list, port_list, player_names):
 
         hanabiDisplay.displayGameState()
         
-
         # SEND PHASE
         sendReceiveToggle = True
         while not sendClientQueue.empty():
@@ -120,6 +121,13 @@ def game_manager(ip_list, port_list, player_names):
             turnCounter = turnCounter + 1
         
         threadActivatorList[playerOrder[currentPlayer]].notify()
+        threadActivatorList[numPlayers].wait()
+        
+    # FINAL SEND PHASE
+    sendReceiveToggle = True
+    while not sendClientQueue.empty():
+        client = sendClientQueue.get_nowait()
+        threadActivatorList[client].notify()
         threadActivatorList[numPlayers].wait()
 
     print("*** GAME COMPLETE ***")
@@ -199,7 +207,31 @@ def game_player(player_id, player_ip, player_data_port):
             print(messageTuple)
                 
             print("Message received from player " + str(player_id+1) +  ", placed on queue! TURN COMPLETE\n")
-            
+                        
+        threadActivatorList[numPlayers].notify() #Using n+1 condition variable to reactivate manager
+        threadActivatorList[player_id].wait() #Release the lock, wait on assigned condition variable
+        
+    print("~~~ FINAL SEND PHASE, PLAYER " + str(player_id + 1) + " ~~~")
+    print("Sending message to player " + str(player_id + 1))
+    if not sendMessageQueue.empty():
+        playerDataSocket.send(SendCode.CLIENT_RECV_MESSAGE.value.encode())
+        response = playerDataSocket.recv(1).decode()
+        
+        while response != SendCode.CLIENT_ACK_MESSAGE.value:
+            playerDataSocket.send(SendCode.CLIENT_RECV_MESSAGE.encode())
+            response = playerDataSocket.recv(1).decode()
+                    
+        sendData = sendMessageQueue.get()  
+        playerDataSocket.send(sendData.encode())
+                    
+        ack = playerDataSocket.recv(1).decode()
+        while ack != SendCode.CLIENT_ACK_MESSAGE.value:
+            playerDataSocket.send(sendData.encode())
+            ack = playerDataSocket.recv(1).decode() #Using for time sync between client and server
+                    
+    else:
+        playerDataSocket.send(SendCode.DO_NOTHING.value.encode())
+        
         threadActivatorList[numPlayers].notify() #Using n+1 condition variable to reactivate manager
         threadActivatorList[player_id].wait() #Release the lock, wait on assigned condition variable
         

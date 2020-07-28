@@ -200,10 +200,11 @@ class Hanabi():
         #     self.clearMessages()
 
         is_valid = False
+        
         if not self.isGameOver:
             is_valid = self.parseCommand(formattedCommand)
             self.isGameOver = self.mistakesRem == 0 or self.turnsRem == 0
-        else:
+        if self.isGameOver:
             print("Game over!\nYou scored " + str(sum(self.display.values())) + " points!")
         return is_valid
         

@@ -259,8 +259,24 @@ Ideas:
 Peer programming: Added color to TextMode (mostly works)
 
 Next time:
-  1. Make discard pile display correctly
+  1. Make discard pile display correctly -- DONE 7/28
   2. Center text in terminal
-  3. Make game actions and server messages a different color
+  3. Make game actions and server messages a different color -- DONE 7/28
   4. Increase font size potentially
   5. Add box around game state display (maybe next next time)
+  
+7/28/20
+  Note: "The server isn't waiting for the game to be over, it's waiting for an acknowledgement from the client that the game is over"
+  Will require refactoring
+  
+  Game end has been (badly) fixed, but there are some possible improvements:
+  - Make the final game display show all cards (Tahj)
+  - Game has a "score" instance variable (Tahj)
+  - Final "next turn" shouldn't be printed (Tahj)
+  - Game over messages get printed after final game state? (Ryan? Tahj? IDK?)
+  
+  - Potentially eliminate the Hanabi Game doing ANY printing?
+  
+  For 7/31
+    - Tahj can try to eliminate a couple of the Hanabi game bugs
+    - Ryan can try to add features to the display (Centered text, font size, game display having a box)

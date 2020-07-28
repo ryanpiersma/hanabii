@@ -22,17 +22,27 @@ class HanabiDisplay():
             HanabiColor.MAGENTA: CardColor.MAGENTA,
             "background": colorama.Fore.GREEN,
             "asterisk": colorama.Fore.WHITE,
-            "name": colorama.Fore.CYAN
+            "name": colorama.Fore.CYAN,
+            "client" : colorama.Fore.WHITE
         }
 
     def displayGameState(self):
         print(colorama.Style.BRIGHT + self.colorMap["background"])
         print("\nHere is the current state of the display:")
+        
         for color in self.hanabiGame.display:
             print(self.colorMap[color].value + color.value  + ": " + str(self.hanabiGame.display[color]) + self.colorMap["background"], end="\t")
-        print("\n\nHere is the discard pile:\n" +str([self.displayCard(discarded) for discarded in self.hanabiGame.discardPile]))
+            
+        print("\n\nHere is the discard pile:")
+        print("  ", end='')
+        for discarded in self.hanabiGame.discardPile:
+            print(self.displayCard(discarded), end='  ') 
+            
         print("\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem))
         print("\n" + self.displayHands())
+        print(self.colorMap["client"])
+        
+        
     
     def displayHands(self):
         handStr = "What you see:\n"

@@ -55,7 +55,8 @@ class Hanabi():
         if self.og:
             self.messages = {player: [] for player in self.players}
 
-        print("Welcome to Hanabi!")
+        self.history = []
+
         self.nextPlayer()
 
 
@@ -116,8 +117,7 @@ class Hanabi():
 
             # Last card was drawn and deck is now empty
             if not self.deck:
-                self.turnsRem = 5
-                print("Last card drawn. Everyone gets one last action!")
+                self.turnsRem = self.numPlayers
 
         return card
             
@@ -132,8 +132,7 @@ class Hanabi():
             self.discardPile.append(pick)
             self.mistakesRem -= 1
         self.draw()
-        
-        print(self.currPlayer.name + " played " + pick.color.value + pick.number.value + ".")
+        self.history.append((self.currPlayer, HanabiCommand.PLAY_CARD, pick))
         
 
     def discard(self, cardPos):
@@ -141,8 +140,7 @@ class Hanabi():
         self.discardPile.append(pick)
         self.addHint()
         self.draw()
-        
-        print(self.currPlayer.name + " discarded " + pick.color.value + pick.number.value + ".")
+        self.history.append((self.currPlayer, HanabiCommand.DISCARD_CARD, pick))
 
 
     def giveHint(self, hint, recipient_id):
@@ -154,8 +152,7 @@ class Hanabi():
             if card.number == hint:
                 card.numberHinted = True
         self.hints -= 1
-        
-        print(self.currPlayer.name + " gave hint to " + recipient.name + " about " + hint.value + "'s.")
+        self.history.append((self.currPlayer, HanabiCommand.GIVE_HINT, recipient, hint))
 
 
     def nextPlayer(self):
@@ -166,8 +163,6 @@ class Hanabi():
         
         if self.turnsRem > 0:
             self.turnsRem -= 1
-        
-        print("It's " + self.currPlayer.name + "'s turn!")
 
 
     def parseCommand(self, command):
@@ -182,7 +177,6 @@ class Hanabi():
                 #     self.broadcast(command)
                 self.nextPlayer()
             return True
-        print("Not a valid action.")
         return False
 
 
@@ -204,8 +198,6 @@ class Hanabi():
         if not self.isGameOver:
             is_valid = self.parseCommand(formattedCommand)
             self.isGameOver = self.mistakesRem == 0 or self.turnsRem == 0
-        if self.isGameOver:
-            print("Game over!\nYou scored " + str(sum(self.display.values())) + " points!")
         return is_valid
         
         # if self.og:

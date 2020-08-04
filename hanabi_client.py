@@ -236,6 +236,7 @@ def play_game(socket):
             isAction = game.update(clientAction)
             if isAction:
                 gameDisplay.displayGameState()
+                gameDisplay.displayEvent()
             
             
         elif serverMessage == SendCode.DO_NOTHING.value:

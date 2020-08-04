@@ -7,6 +7,8 @@ Created on Tue Jul 21 15:39:45 2020
 from enum import Enum
 import colorama
 
+BOX_SIZE = 50
+
 class CardVisibility(Enum):
     FULL = 0
     HINTS = 1

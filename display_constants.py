@@ -21,3 +21,5 @@ class CardColor(Enum):
     YELLOW = colorama.Fore.YELLOW
     MAGENTA = colorama.Fore.MAGENTA
     DEFAULT = colorama.Fore.WHITE
+    BLACK = colorama.Fore.BLACK
+    RESET = colorama.Fore.RESET

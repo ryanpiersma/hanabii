@@ -280,3 +280,15 @@ Next time:
   For 7/31
     - Tahj can try to eliminate a couple of the Hanabi game bugs
     - Ryan can try to add features to the display (Centered text, font size, game display having a box)
+    
+    Nobody did anything. Oops.
+    
+    ----------------------------------------------------------------------------------------------------
+    8/4
+    - Worked on box + removed printing from the Hanabi game
+    
+    8/7
+    - Finished the box! and also a buggy version of centering the box
+    
+    Until next time...
+    

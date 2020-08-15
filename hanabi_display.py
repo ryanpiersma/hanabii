@@ -38,8 +38,7 @@ class HanabiDisplay():
         }
 
     def displayGameState(self):
-        print(self.__center(BOX_SIZE, colorama.Style.BRIGHT + self.displayMap["box"] + " " + "_" * BOX_SIZE), end='')
-        print(self.displayMap["background"])
+        print(self.__center(BOX_SIZE, colorama.Style.BRIGHT + self.displayMap["box"] + " " + "_" * BOX_SIZE + self.displayMap["background"]), end='')
         gameState = "\nHere is the current state of the display:\n"
         
         for color in self.hanabiGame.display:
@@ -49,11 +48,10 @@ class HanabiDisplay():
         for discarded in self.hanabiGame.discardPile:
             gameState += self.displayCard(discarded) + "  "
 
-        gameState += colorama.Style.BRIGHT + self.displayMap["background"]   
+        gameState += colorama.Style.BRIGHT + self.displayMap["background"] + "\n"   
         gameState += "\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem)
         gameState += "\n" + self.displayHands()
-        print(self.__center(BOX_SIZE, self.__enpipesulate(BOX_SIZE, gameState)), end='')
-        print(self.__center(BOX_SIZE, self.__enpipesulate(BOX_SIZE, self.displayMap["box"] + "_" * BOX_SIZE)), end='')
+        print(self.__center(BOX_SIZE, self.__enpipesulate(BOX_SIZE, gameState + self.displayMap["box"] + "_" * BOX_SIZE)), end='')
         print(self.displayMap["client"])
         
         
@@ -145,7 +143,7 @@ class HanabiDisplay():
         stringPieces = string.split("\n")
         finalString = ""
         for string in stringPieces:
-            remainderSpace = terminalLength - boxLength
+            remainderSpace = terminalLength - boxLength - 2
             if remainderSpace <= 0:
                 pass
             else:
@@ -154,8 +152,8 @@ class HanabiDisplay():
                     finalString = finalString + halfSpace + string + halfSpace 
                 else:
                     oddSpace = halfSpace + " "
-                    finalString = finalString +  halfSpace + string + oddSpace 
-            finalString = finalString 
+                    finalString = finalString +  halfSpace + string + oddSpace
+        finalString += "\n"
         return finalString
     
     def __coloramaLengthCount(self, string):

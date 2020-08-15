@@ -271,9 +271,9 @@ Next time:
   
   Game end has been (badly) fixed, but there are some possible improvements:
   - Make the final game display show all cards (Tahj)
-  - Game has a "score" instance variable (Tahj)
-  - Final "next turn" shouldn't be printed (Tahj)
-  - Game over messages get printed after final game state? (Ryan? Tahj? IDK?)
+  - Game has a "score" instance variable (Tahj) FIXED
+  - Final "next turn" shouldn't be printed (Tahj) FIXED
+  - Game over messages get printed after final game state? FIXED
   
   - Potentially eliminate the Hanabi Game doing ANY printing?
   
@@ -291,4 +291,15 @@ Next time:
     - Finished the box! and also a buggy version of centering the box
     
     Until next time...
+
+    ----------------------------------------------------------------------------------------
+8/15
+Accomplished:
+- Fixed box centering bug
+
+TO DO:
+- Update text size
+- Make the final game display show all cards
+- Visual mode :)
     
+We're going to try it over AWS! Results later...

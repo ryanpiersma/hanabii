@@ -10,6 +10,7 @@ import os
 from display_constants import *
 from hanabi_constants import HanabiColor
 from hanabi_constants import HanabiCommand
+import visual_mode
 
 class HanabiDisplay():
     def __init__(self, game):
@@ -45,8 +46,10 @@ class HanabiDisplay():
             gameState += self.colorMap[color].value + color.value  + ": " + str(self.hanabiGame.display[color]) + self.displayMap["background"] + "\t"
             
         gameState += "\n\nHere is the discard pile:\n  "
-        for discarded in self.hanabiGame.discardPile:
-            gameState += self.displayCard(discarded) + "  "
+        # for discarded in self.hanabiGame.discardPile:
+        #     gameState += self.displayCard(discarded) + "  "
+        if self.hanabiGame.discardPile:
+            gameState += visual_mode.displayASCIICards(self.hanabiGame.discardPile)
 
         gameState += colorama.Style.BRIGHT + self.displayMap["background"] + "\n"   
         gameState += "\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem)
@@ -74,7 +77,7 @@ class HanabiDisplay():
             handStr += self.displayCard(card, mode) + " "
         return handStr
     
-    def displayCard(self,card, mode=CardVisibility.FULL):
+    def displayCard(self,card,mode=CardVisibility.FULL):
         if mode == CardVisibility.HIDDEN:
             return self.displayMap["asterisk"] + "**" + colorama.Fore.RESET
         elif mode == CardVisibility.HINTS:

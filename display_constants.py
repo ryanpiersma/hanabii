@@ -8,6 +8,8 @@ from enum import Enum
 import colorama
 
 BOX_SIZE = 50
+DEFAULT_CARD_SIZE = 5
+DEFAULT_PADDING = 2
 
 class CardVisibility(Enum):
     FULL = 0

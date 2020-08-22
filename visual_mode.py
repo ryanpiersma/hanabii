@@ -1,40 +1,74 @@
-from display_constants import DEFAULT_CARD_SIZE, DEFAULT_PADDING
+from display_constants import *
+from hanabi_constants import HanabiColor
+import colorama
 
+backgroundMap = {
+    HanabiColor.RED: BackgroundColor.RED,
+    HanabiColor.GREEN: BackgroundColor.GREEN,
+    HanabiColor.BLUE: BackgroundColor.BLUE,
+    HanabiColor.YELLOW: BackgroundColor.YELLOW,
+    HanabiColor.MAGENTA: BackgroundColor.MAGENTA,
+    "black": BackgroundColor.BLACK,
+    "white": BackgroundColor.DEFAULT,
+    "reset": BackgroundColor.RESET
+    }
 
-def displayASCIICards(cards, size=DEFAULT_CARD_SIZE):
+def displayASCIICards(cards, size=DEFAULT_CARD_SIZE, fullDisplay=False):
     cardLinesList = []
     for card in cards:
-        cardLinesList.append(createCard(card, size))
+        cardLinesList.append(createCard(card, size, fullDisplay))
     return concatenateCards(cardLinesList)
 
-def createCard(card, size):
-    cardLines = [" " * (size + 2) for _ in range(size + 1)]
-    addUnderscores(cardLines, size)
-    addPipes(cardLines)
-    addNumber(cardLines, card.number.value)
-    addColor(cardLines, card.color.value)
-    return cardLines
+def createCard(card, size, fullDisplay):
+    cardLines = [[] for _ in range(size + 1)]
+    for cardLine in cardLines:
+        for i in range(size + 2):
+            cardLine.append(" ")
+            
+    if not (fullDisplay or card.colorHinted):
+        addUnderscores(cardLines, size)
+    addPipes(cardLines, card, fullDisplay)
+    addNumber(cardLines, card, fullDisplay)
+    addTextColor(cardLines, card, fullDisplay)
+    
+    return ["".join(line) + backgroundMap["reset"].value for line in cardLines]
 
 def concatenateCards(cardLinesList, padding=DEFAULT_PADDING):
+    
     handLines = ["" for _ in cardLinesList[0]]
     for cardLines in cardLinesList:
         for i in range(len(cardLines)):
             handLines[i] += cardLines[i] + " " * padding
-    return "\n".join(handLines)
+    
+    return "\n".join(handLines) 
 
 def addUnderscores(cardLines, size):
-    cardLines[0][1:-1] = "_" * size
-    cardLines[-1][1:-1] = "_" * size
+    for i in range(1, len(cardLines[0]) - 1):
+        cardLines[0][i-1] = "_"
+        cardLines[-1][i] = "_"
+    
 
-def addPipes(cardLines):
-    for line in cardLines[1:]:
-        line[0] = "|"
-        line[-1] = "|"
+def addPipes(cardLines, card, fullDisplay):
+    if (not card.colorHinted) and (not fullDisplay):    
+        for line in cardLines[1:]:
+            line[0] = "|"
+            line[-1] = "|"
+    else:
+        for line in cardLines[1:]:
+            line[0] =  backgroundMap[card.color].value + " "
+            line[-1] = backgroundMap["reset"].value + " "
 
-def addNumber(cardLines, number):
-    cardLines[1][1] = number
-    cardLines[-1][-2] = number
+def addNumber(cardLines, card, fullDisplay):
+    if (not card.numberHinted) and (not fullDisplay) :
+        cardLines[1][1] = colorama.Fore.WHITE + "#"
+        cardLines[-1][-2] = colorama.Fore.WHITE + "#"
+    else:
+        cardLines[1][1] = colorama.Fore.BLACK + card.number 
+        cardLines[-1][-2] = colorama.Fore.BLACK + card.number 
 
-def addColor(cardLines, color):
+def addTextColor(cardLines, card, fullDisplay):
     center = (len(cardLines) - 1) // 2 + 1
-    cardLines[center][center] = color
+    if (not card.colorHinted) and (not fullDisplay) :
+        cardLines[center][center] = "X"
+    else:
+        cardLines[center][center] = colorama.Fore.BLACK + card.color + colorama.Fore.RESET

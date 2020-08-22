@@ -303,3 +303,10 @@ TO DO:
 - Visual mode :)
     
 We're going to try it over AWS! Results later...
+
+8/18
+Implemented visual mode for cards but found out that the approach was mitigated by the immutability of strings
+
+8/22
+Changed visual mode approach to use lists of characters that are joined into strings - which worked successfully
+Began integrating colors with visual mode, but were encountering a few roadblocks with where to include color codes

@@ -11,6 +11,7 @@ from display_constants import *
 from hanabi_constants import HanabiColor
 from hanabi_constants import HanabiCommand
 from visual_mode import *
+import re
 
 class HanabiDisplay():
     def __init__(self, game):
@@ -139,14 +140,6 @@ class HanabiDisplay():
         return finalString
     
     def __coloramaLengthCount(self, string):
-        lengthCounter = 0
-        for color in COLOR_MAP.values():
-            lengthCounter = lengthCounter + (string.count(color.value) * len(color.value))
-            
-        for color in backgroundMap.values():
-            lengthCounter = lengthCounter + (string.count(color.value) * len(color.value))
-           
-        lengthCounter = lengthCounter + (string.count(colorama.Style.BRIGHT) * len(colorama.Style.BRIGHT))
-        
-        return lengthCounter
+        coloramas = "".join(re.findall(r'\x1b\[[0-9]{1,2}m', string))
+        return len(coloramas)
         

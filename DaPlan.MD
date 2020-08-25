@@ -310,3 +310,14 @@ Implemented visual mode for cards but found out that the approach was mitigated 
 8/22
 Changed visual mode approach to use lists of characters that are joined into strings - which worked successfully
 Began integrating colors with visual mode, but were encountering a few roadblocks with where to include color codes
+
+8/25
+- Fixed color codes for visual mode
+- Made cards look different based on hints
+- Refactored coloramaLengthCount
+- Decided on new card formatting (still not finished)
+
+TODO:
+  - Fix addUnderscores in visual_mode.py
+  - Show visual cards EVERYWHERE
+  - Handle large discard pile (probably wrapping)

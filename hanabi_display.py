@@ -25,11 +25,11 @@ class HanabiDisplay():
         for color in self.hanabiGame.display:
             gameState += COLOR_MAP[color].value + color.value  + ": " + str(self.hanabiGame.display[color]) + DISPLAY_MAP["background"] + "\t"
             
-        gameState += "\n\nHere is the discard pile:\n  "
+        gameState += "\n\nHere is the discard pile:\n"
         # for discarded in self.hanabiGame.discardPile:
         #     gameState += self.displayCard(discarded) + "  "
         if self.hanabiGame.discardPile:
-            gameState += displayASCIICards(self.hanabiGame.discardPile)
+            gameState += displayASCIICards(self.hanabiGame.discardPile, fullDisplay=True)
 
         gameState += colorama.Style.BRIGHT + DISPLAY_MAP["background"] + "\n"   
         gameState += "\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem)
@@ -38,16 +38,19 @@ class HanabiDisplay():
         print(DISPLAY_MAP["client"])
         
         
-    
     def displayHands(self):
         handStr = "\nWhat you see:\n"
         for player in self.hanabiGame.players:
-            handStr += DISPLAY_MAP["name"] + player.name + DISPLAY_MAP["background"] + ": "
+            handStr += "\n" + DISPLAY_MAP["name"] + player.name.upper() + DISPLAY_MAP["background"] + "\n"
             if player == self.hanabiGame.owner:
-                handStr += self.displayHand(player, CardVisibility.HINTS)
+                #handStr += self.displayHand(player, CardVisibility.HINTS)
+                handStr += displayASCIICards(player.hand)
             else:
-                handStr += self.displayHand(player)
+                #handStr += self.displayHand(player)
+                handStr += displayASCIICards(player.hand, fullDisplay=True)
             handStr += "\n"
+            if not player == self.hanabiGame.players[-1]:
+                handStr += ("-" * int(BOX_SIZE * 0.9))
 
         return handStr
     
@@ -55,6 +58,7 @@ class HanabiDisplay():
         handStr = ""
         for card in hanabiPlayer.hand:
             handStr += self.displayCard(card, mode) + " "
+            
         return handStr
     
     def displayCard(self,card,mode=CardVisibility.FULL):

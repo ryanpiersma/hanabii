@@ -318,6 +318,6 @@ Began integrating colors with visual mode, but were encountering a few roadblock
 - Decided on new card formatting (still not finished)
 
 TODO:
-  - Fix addUnderscores in visual_mode.py
-  - Show visual cards EVERYWHERE
-  - Handle large discard pile (probably wrapping)
+  - Fix addUnderscores in visual_mode.py   (DONE 8/30)
+  - Show visual cards EVERYWHERE (Works for player's hands 8/30, still need overall "score cards")
+  - Handle large discard pile (probably wrapping) -- or other options

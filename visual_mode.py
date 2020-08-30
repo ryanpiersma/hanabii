@@ -24,12 +24,11 @@ def createCard(card, size, fullDisplay):
     for cardLine in cardLines:
         for i in range(size + 2):
             cardLine.append(" ")
-            
-    addUnderscores(cardLines, size)
-    addPipes(cardLines, card, fullDisplay)
+
+    addPipes(cardLines, card, fullDisplay)        
+    addUnderscores(cardLines, card, fullDisplay)
     addNumber(cardLines, card, fullDisplay)
     addTextColor(cardLines, card, fullDisplay)
-
     
     for cardLine in cardLines:
         cardLine.insert(0, DISPLAY_MAP["card"])
@@ -47,11 +46,12 @@ def concatenateCards(cardLinesList, padding=DEFAULT_PADDING):
     return "\n".join(handLines) 
 
 def addUnderscores(cardLines, card, fullDisplay):
-    # if card.colorHinted or fullDisplay:
-    #     cardLines[0][0]
-    for i in range(1, len(cardLines[0]) - 1):
-        cardLines[0][i] = "_"
-        cardLines[-1][i] = "_"
+     if card.colorHinted or fullDisplay:
+         return
+         
+     for i in range(1, len(cardLines[0]) - 1):
+        cardLines[0][i] =  "_"
+        cardLines[-1][i] = "_" 
     
 
 def addPipes(cardLines, card, fullDisplay):
@@ -61,8 +61,8 @@ def addPipes(cardLines, card, fullDisplay):
             line[-1] = "|"
     else:
         for line in cardLines[1:]:
-            line[0] = backgroundMap[card.color].value + "|"
-            line[-1] = "|" + backgroundMap["reset"].value
+            line[0] = backgroundMap[card.color].value + " "
+            line[-1] = " " + backgroundMap["reset"].value
 
 def addNumber(cardLines, card, fullDisplay):
     if (not card.numberHinted) and (not fullDisplay) :
@@ -72,12 +72,12 @@ def addNumber(cardLines, card, fullDisplay):
         cardLines[1][1] = colorama.Fore.WHITE + card.number.value
         cardLines[-1][-2] = colorama.Fore.WHITE + card.number.value
     else:
-        cardLines[1][1] = colorama.Fore.BLACK + colorama.Style.DIM + card.number.value + colorama.Style.BRIGHT + colorama.Fore.RESET
-        cardLines[-1][-2] = colorama.Fore.BLACK + colorama.Style.DIM + card.number.value + colorama.Style.BRIGHT + colorama.Fore.RESET
+        cardLines[1][1] = colorama.Fore.BLACK +  card.number.value + colorama.Fore.RESET
+        cardLines[-1][-2] = colorama.Fore.BLACK +  card.number.value + colorama.Fore.RESET
 
 def addTextColor(cardLines, card, fullDisplay):
     center = (len(cardLines) - 1) // 2 + 1
     if (not card.colorHinted) and (not fullDisplay) :
         cardLines[center][center] = "X"
     else:
-        cardLines[center][center] = colorama.Fore.BLACK + colorama.Style.DIM + card.color.value + colorama.Style.BRIGHT + colorama.Fore.RESET
+        cardLines[center][center] = colorama.Fore.BLACK + card.color.value  + colorama.Fore.RESET 

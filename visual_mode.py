@@ -16,10 +16,13 @@ backgroundMap = {
 def displayASCIICards(cards, size=DEFAULT_CARD_SIZE, fullDisplay=False):
     cardLinesList = []
     for card in cards:
-        cardLinesList.append(createCard(card, size, fullDisplay))
+        if card.number == 0:
+            cardLinesList.append(createCard(card, size, fullDisplay, True))
+        else:
+            cardLinesList.append(createCard(card, size, fullDisplay))
     return concatenateCards(cardLinesList)
 
-def createCard(card, size, fullDisplay):
+def createCard(card, size, fullDisplay, blank=False):
     cardLines = [[] for _ in range(size + 1)]
     for cardLine in cardLines:
         for i in range(size + 2):
@@ -27,8 +30,9 @@ def createCard(card, size, fullDisplay):
 
     addPipes(cardLines, card, fullDisplay)        
     addUnderscores(cardLines, card, fullDisplay)
-    addNumber(cardLines, card, fullDisplay)
-    addTextColor(cardLines, card, fullDisplay)
+    if not blank:
+        addNumber(cardLines, card, fullDisplay)
+        addTextColor(cardLines, card, fullDisplay)
     
     for cardLine in cardLines:
         cardLine.insert(0, DISPLAY_MAP["card"])

@@ -8,10 +8,10 @@ Created on Tue Jul 21 15:33:16 2020
 import colorama
 import os
 from display_constants import *
-from hanabi_constants import HanabiColor
-from hanabi_constants import HanabiCommand
+from hanabi_constants import *
 from visual_mode import *
 import re
+from main import Card
 
 class HanabiDisplay():
     def __init__(self, game):
@@ -22,21 +22,34 @@ class HanabiDisplay():
         print(self.__center(BOX_SIZE, colorama.Style.BRIGHT + DISPLAY_MAP["box"] + " " + "_" * BOX_SIZE + DISPLAY_MAP["background"]), end='')
         gameState = "\nHere is the current state of the display:\n"
         
-        for color in self.hanabiGame.display:
-            gameState += COLOR_MAP[color].value + color.value  + ": " + str(self.hanabiGame.display[color]) + DISPLAY_MAP["background"] + "\t"
-            
+        # for color in self.hanabiGame.display:
+            # gameState += COLOR_MAP[color].value + color.value  + ": " + str(self.hanabiGame.display[color]) + DISPLAY_MAP["background"] + "\t"
+        gameState += displayASCIICards(self.displayScoreDisplay())
+
         gameState += "\n\nHere is the discard pile:\n"
         # for discarded in self.hanabiGame.discardPile:
         #     gameState += self.displayCard(discarded) + "  "
         if self.hanabiGame.discardPile:
-            gameState += displayASCIICards(self.hanabiGame.discardPile, fullDisplay=True)
+            gameState += displayASCIICards(self.hanabiGame.discardPile[-5:], fullDisplay=True)
 
         gameState += colorama.Style.BRIGHT + DISPLAY_MAP["background"] + "\n"   
         gameState += "\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem)
         gameState += "\n" + self.displayHands()
         print(self.__center(BOX_SIZE, self.__enpipesulate(BOX_SIZE, gameState + DISPLAY_MAP["box"] + "_" * BOX_SIZE)), end='')
         print(DISPLAY_MAP["client"])
-        
+
+    def displayScoreDisplay(self):
+        cards = []
+        for color in self.hanabiGame.display:
+            number = self.hanabiGame.display[color]
+            if number == 0:
+                cards.append(Card(color, number))
+            else:
+                card = Card(color, list(HanabiNumber)[number-1])
+                card.colorHinted = True
+                card.numberHinted = True
+                cards.append(card)
+        return cards
         
     def displayHands(self):
         handStr = "\nWhat you see:\n"

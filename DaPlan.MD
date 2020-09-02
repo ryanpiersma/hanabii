@@ -319,5 +319,16 @@ Began integrating colors with visual mode, but were encountering a few roadblock
 
 TODO:
   - Fix addUnderscores in visual_mode.py   (DONE 8/30)
-  - Show visual cards EVERYWHERE (Works for player's hands 8/30, still need overall "score cards")
-  - Handle large discard pile (probably wrapping) -- or other options
+  - Show visual cards EVERYWHERE (Works for player's hands 8/30, still need overall "score cards") (DONE 8/31)
+  - Handle large discard pile (probably wrapping) -- or other options (DONE 8/31)
+
+8/31
+- Did the TODOs from above
+- Added resizing feature
+
+OPTIMISTIC TODO:
+  - Set up AWS
+  - Log game states (i.e. map game action to game state)   
+  - Checkpointing of games + using this to handle bad network connections
+  - Develop framework for individualized configuration of games
+  - Create a game manager for running multiple games from one server

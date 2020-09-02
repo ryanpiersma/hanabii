@@ -220,6 +220,8 @@ def play_game(socket):
                     print("Please input a correct command. Ask for help with 'help' \n")
                     sendServer = input('Input your game action: ')
                 checkMessage = translate_message(sendServer)
+                if "resizing" in checkMessage.lower():
+                    gameDisplay.displayGameState()
                 numIterations = numIterations + 1
                 
             print("Sending command to server...\n")
@@ -279,7 +281,11 @@ def translate_message(inString):
         print("DISCARD: D <pos>, where <pos> represents the postiion of the card [1 2 3 4 5] ")
         print("HINT:    H <color/num> <playernum> where <color/num> is a member of [R W Y G B 1 2 3 4 5]")
         print("                                   and <playernum> is the number of another player")
+        print("\nRESIZING THE TERMINAL: If you would like to adjust the terminal size, type 'resize' afterward.")
         returnMessage = "ERROR: Imagine asking for help"
+    
+    elif commandComponents[0].lower() == "resize":
+        returnMessage = "ERROR: Resizing..."
         
     elif len(commandComponents) != 2 and not commandComponents[0] == HanabiCommand.GIVE_HINT.value:
         returnMessage = "ERROR: The command has the wrong number of arguments..."

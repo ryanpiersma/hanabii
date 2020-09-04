@@ -245,6 +245,8 @@ def play_game(socket):
             pass
             
         elif serverMessage == SendCode.TERMINATE_GAME.value:
+            gameDisplay.displayGameState(True)
+            gameDisplay.displayEvent()
             print("Game has ended. Hope ya had fun...")
             runGame = False
             

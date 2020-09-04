@@ -18,7 +18,7 @@ class HanabiDisplay():
         colorama.init()
         self.hanabiGame = game
 
-    def displayGameState(self):
+    def displayGameState(self, finalDisplay=False):
         print(self.__center(BOX_SIZE, colorama.Style.BRIGHT + DISPLAY_MAP["box"] + " " + "_" * BOX_SIZE + DISPLAY_MAP["background"]), end='')
         gameState = "\nHere is the current state of the display:\n"
         
@@ -33,8 +33,8 @@ class HanabiDisplay():
             gameState += displayASCIICards(self.hanabiGame.discardPile[-5:], fullDisplay=True)
 
         gameState += colorama.Style.BRIGHT + DISPLAY_MAP["background"] + "\n"   
-        gameState += "\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem)
-        gameState += "\n" + self.displayHands()
+        gameState += "\nHints: " + str(self.hanabiGame.hints) + "\tMistakes remaining: " + str(self.hanabiGame.mistakesRem) + "\n\nCards remaining: " + str(len(self.hanabiGame.deck))
+        gameState += "\n" + self.displayHands(finalDisplay)
         print(self.__center(BOX_SIZE, self.__enpipesulate(BOX_SIZE, gameState + DISPLAY_MAP["box"] + "_" * BOX_SIZE)), end='')
         print(DISPLAY_MAP["client"])
 
@@ -51,13 +51,13 @@ class HanabiDisplay():
                 cards.append(card)
         return cards
         
-    def displayHands(self):
+    def displayHands(self, finalDisplay=False):
         handStr = "\nWhat you see:\n"
         for player in self.hanabiGame.players:
             handStr += "\n" + DISPLAY_MAP["name"] + player.name.upper() + DISPLAY_MAP["background"] + "\n"
             if player == self.hanabiGame.owner:
                 #handStr += self.displayHand(player, CardVisibility.HINTS)
-                handStr += displayASCIICards(player.hand)
+                handStr += displayASCIICards(player.hand, fullDisplay=finalDisplay)
             else:
                 #handStr += self.displayHand(player)
                 handStr += displayASCIICards(player.hand, fullDisplay=True)
@@ -96,10 +96,11 @@ class HanabiDisplay():
     def displayEvent(self):
         self.displayAction()
         print(DISPLAY_MAP["event"])
-        if self.hanabiGame.turnsRem == self.hanabiGame.numPlayers:
-            print("Last card drawn. Everyone gets one last action!")
+        
         if self.hanabiGame.isGameOver:
             print("Game over!\nYou scored " + str(sum(self.hanabiGame.display.values())) + " points!")
+        elif not self.hanabiGame.deck:
+            print("It's " + self.hanabiGame.currPlayer.name + "'s LAST turn!")
         else:
             print("It's " + self.hanabiGame.currPlayer.name + "'s turn!")
 

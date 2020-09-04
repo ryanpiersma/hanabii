@@ -332,3 +332,16 @@ OPTIMISTIC TODO:
   - Checkpointing of games + using this to handle bad network connections
   - Develop framework for individualized configuration of games
   - Create a game manager for running multiple games from one server
+
+9/4
+- Played a full game successfully
+- Made display game state at end of game
+- Added cards remaining to display
+
+NEXT TIME:
+  - Create README
+  - Make repo public!!!!!!!!!!
+
+TODO:
+  - Do something about number color changing when hinting card color
+  - Fix Hanabi.turnsRem so that it prints when deck runs out

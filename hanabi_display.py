@@ -105,14 +105,15 @@ class HanabiDisplay():
             print("It's " + self.hanabiGame.currPlayer.name + "'s turn!")
 
     def displayAction(self):
-        print(DISPLAY_MAP["action"])
-        action = self.hanabiGame.history[-1]
-        if action[1] == HanabiCommand.PLAY_CARD:
-            print(action[0].name + " played " + self.displayCard(action[2]) + ".")
-        elif action[1] == HanabiCommand.DISCARD_CARD:
-            print(action[0].name + " discarded " + self.displayCard(action[2]) + ".")
-        elif action[1] == HanabiCommand.GIVE_HINT:
-            print(action[0].name + " gave hint to " + action[2].name + " about " + action[3].value + "'s.")
+        if self.hanabiGame.history:
+            print(DISPLAY_MAP["action"])
+            action = self.hanabiGame.history[-1]
+            if action[1] == HanabiCommand.PLAY_CARD:
+                print(action[0].name + " played " + self.displayCard(action[2]) + ".")
+            elif action[1] == HanabiCommand.DISCARD_CARD:
+                print(action[0].name + " discarded " + self.displayCard(action[2]) + ".")
+            elif action[1] == HanabiCommand.GIVE_HINT:
+                print(action[0].name + " gave hint to " + action[2].name + " about " + action[3].value + "'s.")
 
     def __enpipesulate(self, boxLength, string):
         stringPieces = string.split("\n")

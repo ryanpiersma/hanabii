@@ -119,7 +119,7 @@ class Hanabi():
             if not self.deck:
                 self.turnsRem = self.numPlayers
 
-        return card
+            return card
             
 
     def play(self, cardPos):

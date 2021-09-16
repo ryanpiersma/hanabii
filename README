@@ -1,8 +1,2 @@
-Name: Ryan Piersma
-Date: 1.24.20
-Environment: Python 2.7.12, Ubuntu 16.04.6 LTS (Xenial Xerus)
-Results: Should pass all tests! Correctly implements an echo server that closes the
-client connection when provided with an EOF control signal or the word "bye"
-How to run code:
-   Client side --- python echo_server.py c <IP addr> <port #>
-   Server side --- python echo_server.py s <port #>
+Play the card game Hanabi over a local network!
+Better instructions and documentation coming soon...
